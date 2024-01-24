@@ -7,6 +7,7 @@ using System.Reflection;
 using ShipLootPlus.Utils;
 using System;
 using System.IO;
+using ShipLootPlus.Patches;
 
 namespace ShipLootPlus
 {
@@ -15,7 +16,7 @@ namespace ShipLootPlus
         public const string Author = "PXC";
         public const string Name = "ShipLootPlus";
         public const string Id = "PXC.ShipLootPlus";
-        public const string Version = "1.0.0";
+        public const string Version = "1.0.1";
         public string FullName => string.Format("{0} v{1}", Name, Version);
     }
 
@@ -56,7 +57,56 @@ namespace ShipLootPlus
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), PluginMetadata.Id);
             ConfigSettings.Initialize(Config, "Shows ShipLoot, Quota, and Days left information on the scan HUD");
+
+            ConfigSettings.AlwaysShow.SettingChanged += ToggleUi_SettingChanged;
+            ConfigSettings.AllCaps.SettingChanged += RefreshUi_SettingChanged;
+            ConfigSettings.ShowLine.SettingChanged += RedrawRequired_SettingChanged;
+            ConfigSettings.LineColor.SettingChanged += RedrawRequired_SettingChanged;
+            ConfigSettings.ShowShipLoot.SettingChanged += RedrawRequired_SettingChanged;
+            ConfigSettings.ShipLootColor.SettingChanged += RedrawRequired_SettingChanged;
+            ConfigSettings.ShipLootFormat.SettingChanged += RedrawRequired_SettingChanged;
+            ConfigSettings.ShowQuota.SettingChanged += RedrawRequired_SettingChanged;
+            ConfigSettings.QuotaColor.SettingChanged += RedrawRequired_SettingChanged;
+            ConfigSettings.QuotaFormat.SettingChanged += RedrawRequired_SettingChanged;
+            ConfigSettings.ShowDays.SettingChanged += RedrawRequired_SettingChanged;
+            ConfigSettings.DaysColor.SettingChanged += RedrawRequired_SettingChanged;
+            ConfigSettings.DaysFormat.SettingChanged += RedrawRequired_SettingChanged;
+
             Log.LogInfo(string.Format("Loaded!\n{0}", FiggleFonts.Doom.Render(pluginMetadata.FullName)));
+        }
+
+        #endregion
+
+        #region Events
+
+        /// <summary>
+        /// When a setting is changed that requires a UI refresh
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void RedrawRequired_SettingChanged(object sender, System.EventArgs e)
+        {
+            UiHelper.ResetUiElements();
+        }
+
+        /// <summary>
+        /// Enable/Disable the UI elements based on AlwaysShow
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void ToggleUi_SettingChanged(object sender, System.EventArgs e)
+        {
+            UiHelper.ContainerObject.SetActive(ConfigSettings.AlwaysShow.Value);
+        }
+
+        /// <summary>
+        /// Refresh the UI data when AllCaps is changed
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void RefreshUi_SettingChanged(object sender, System.EventArgs e)
+        {
+            UiHelper.RefreshElementValues();
         }
 
         #endregion

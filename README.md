@@ -49,6 +49,10 @@ This started as a fork but I ended up rewriting 99% of it to allow for more dyna
 
 ## Planned Features
 - Expand what data is able to be set in each line
+- ~~Option to disable the bounding line entirely~~
+- ~~Option to make the HUD elements not tied to scanning so they are always shown~~
+- Option to change the HUD elements position (so it could be moved anywhere on screen)
+- ~~Configurable timeout so you can customize how long it shows~~
 
 ## Compatibility
 - Since this is basically a full rewrite of ShipLoot, it is not compatible with it. This mod will disable itself with a warning in the console stating as such if its found.
