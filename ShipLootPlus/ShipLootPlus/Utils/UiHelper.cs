@@ -430,7 +430,7 @@ namespace ShipLootPlus.Utils
 #if DEBUG
             StackTrace stackTrace = new StackTrace();
             MethodBase callingMethod = stackTrace.GetFrames().Skip(1).Select(frame => frame.GetMethod()).FirstOrDefault();
-            Log.LogWarning($"[RefreshElementValues:{IsUpdating}] Caller => {FriendlyNull(callingMethod)}");
+            Log.LogWarning($"[RefreshElementValues:{IsUpdating}] Caller => {callingMethod}");
 #endif
             if (!IsUpdating) { IsUpdating = true; }
             if (UiElementList == null || ContainerObject == null)
