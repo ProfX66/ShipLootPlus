@@ -8,6 +8,7 @@ using ShipLootPlus.Utils;
 using System;
 using System.IO;
 using ShipLootPlus.Patches;
+using System.Text.RegularExpressions;
 
 namespace ShipLootPlus
 {
@@ -79,6 +80,7 @@ namespace ShipLootPlus
             int count = 1;
             foreach (ReplacementData item in UiHelper.DataPoints)
             {
+                item.Name = Regex.Replace(item.Pattern, "%", "", RegexOptions.IgnoreCase);
                 Log.LogInfo($"[DataPoint #{count:D2}] {item.Pattern} => {item.Description}");
                 count++;
             }

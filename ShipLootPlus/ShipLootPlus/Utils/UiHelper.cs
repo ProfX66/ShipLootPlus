@@ -577,7 +577,6 @@ namespace ShipLootPlus.Utils
                 Log.LogWarning($"IsUpdating>: {IsUpdating} => {slpi.name}");
 #endif
                 string textContent = ReplaceValues(slpi.format, DataPoints);
-                //string textContent = await ReplaceValuesAsync(slpi.format, DataPoints);
                 slpi.textMeshProUGui.text = textContent;
                 slpi.textMeshProUGui.ForceMeshUpdate();
                 if (ConfigSettings.AllCaps.Value) { slpi.textMeshProUGui.text = slpi.textMeshProUGui.text.ToUpper(); }
@@ -602,6 +601,10 @@ namespace ShipLootPlus.Utils
         /// <param name="QuatLocRot"></param>
         public static void LogPos(GameObject InObj, out Vector3 VecPos, out Quaternion QuatRot, out Vector3 VecLocPos, out Quaternion QuatLocRot)
         {
+            VecLocPos = Vector3.zero;
+            QuatLocRot = Quaternion.identity;
+            VecPos = Vector3.zero;
+            QuatRot = Quaternion.identity;
             InObj.transform.GetPositionAndRotation(out VecPos, out QuatRot);
             InObj.transform.GetLocalPositionAndRotation(out VecLocPos, out QuatLocRot);
 #if DEBUG

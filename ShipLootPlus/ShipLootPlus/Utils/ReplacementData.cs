@@ -9,6 +9,7 @@ namespace ShipLootPlus.Utils
 {
     internal class ReplacementData
     {
+        public string Name;
         public string Pattern;
         public string Description;
         public string Value;
