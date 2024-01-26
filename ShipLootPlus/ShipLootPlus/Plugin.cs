@@ -21,7 +21,7 @@ namespace ShipLootPlus
     }
 
     [BepInPlugin(PluginMetadata.Id, PluginMetadata.Name, PluginMetadata.Version)]
-    [BepInDependency("ainavt.lc.lethalconfig", BepInDependency.DependencyFlags.HardDependency)]
+    [BepInDependency("ainavt.lc.lethalconfig", BepInDependency.DependencyFlags.SoftDependency)]
     public class ShipLootPlus : BaseUnityPlugin
     {
         #region Plugin Entry
@@ -40,8 +40,7 @@ namespace ShipLootPlus
             Log = Logger;
             Log.LogInfo(string.Format("Initializing plugin: {0} by {1}", pluginMetadata.FullName, PluginMetadata.Author));
 
-            Assembly originalAssembly = LoadOriginal();
-            if (originalAssembly != null)
+            if (AssemblyExists("ShipLoot"))
             {
                 Log.LogInfo("");
                 Log.LogInfo("");
@@ -56,8 +55,35 @@ namespace ShipLootPlus
             }
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), PluginMetadata.Id);
-            ConfigSettings.Initialize(Config, "Shows ShipLoot, Quota, and Days left information on the scan HUD");
+            UiHelper.DataPoints = new List<ReplacementData>
+            {
+                new ReplacementData { Pattern = "%ShipLootValue%", Description = "Value of all scrap on ship"},
+                new ReplacementData { Pattern = "%MoonLootValue%", Description = "Value of all scrap on moon"},
+                new ReplacementData { Pattern = "%AllLootValue%", Description = "Value of all scrap total"},
+                new ReplacementData { Pattern = "%InventoryLootValue%", Description = "Value of all scrap on the player"},
+                new ReplacementData { Pattern = "%ShipLootCount%", Description = "Count of all scrap on ship"},
+                new ReplacementData { Pattern = "%MoonLootCount%", Description = "Count of all scrap on moon"},
+                new ReplacementData { Pattern = "%AllLootCount%", Description = "Count of all scrap total"},
+                new ReplacementData { Pattern = "%InventoryLootCount%", Description = "Count of all scrap on the player"},
+                new ReplacementData { Pattern = "%FulfilledValue%", Description = "Value of turned in scrap for quota"},
+                new ReplacementData { Pattern = "%QuotaValue%", Description = "Value of current quota"},
+                new ReplacementData { Pattern = "%CompanyRate%", Description = "Current company buy rate"},
+                new ReplacementData { Pattern = "%ExpectedProfit%", Description = "Expected profit from scap on ship at current company buy rate"},
+                new ReplacementData { Pattern = "%Deadline%", Description = "Quota deadline in days"},
+                new ReplacementData { Pattern = "%DeadlineWithColors%", Description = "Quota deadline in days but changes colors based on value"},
+                new ReplacementData { Pattern = "%DayNumber%", Description = "Number of days in the ship/save (E.g. 1, 10)"},
+                new ReplacementData { Pattern = "%DayNumberHuman%", Description = "Human friendly days in the ship/save (E.g. 1st, 10th)"},
+                new ReplacementData { Pattern = "%Weather%", Description = "Current moons weather"}
+            };
+            
+            int count = 1;
+            foreach (ReplacementData item in UiHelper.DataPoints)
+            {
+                Log.LogInfo($"[DataPoint #{count:D2}] {item.Pattern} => {item.Description}");
+                count++;
+            }
 
+            ConfigSettings.Initialize(Config, "Shows ShipLoot, Quota, and Days left information on the scan HUD");
             ConfigSettings.AlwaysShow.SettingChanged += ToggleUi_SettingChanged;
             ConfigSettings.AllCaps.SettingChanged += RefreshUi_SettingChanged;
             ConfigSettings.ShowLine.SettingChanged += RedrawRequired_SettingChanged;
@@ -71,7 +97,7 @@ namespace ShipLootPlus
             ConfigSettings.ShowDays.SettingChanged += RedrawRequired_SettingChanged;
             ConfigSettings.DaysColor.SettingChanged += RedrawRequired_SettingChanged;
             ConfigSettings.DaysFormat.SettingChanged += RedrawRequired_SettingChanged;
-
+            
             Log.LogInfo(string.Format("Loaded!\n{0}", FiggleFonts.Doom.Render(pluginMetadata.FullName)));
         }
 
@@ -114,32 +140,24 @@ namespace ShipLootPlus
         #region Helpers
 
         /// <summary>
-        /// Element positions
+        /// Tests if an assembly is available or not
         /// </summary>
-        public enum ElementLocation
-        {
-            Top,
-            Middle,
-            Bottom
-        }
-
-        /// <summary>
-        /// Loads the original ShipLoot assembly if it exists
-        /// </summary>
-        /// <returns></returns>
-        private static Assembly LoadOriginal()
+        /// <param name="Name"></param>
+        /// <returns>bool</returns>
+        public static bool AssemblyExists(string Name)
         {
             try
             {
-                Assembly assembly = AppDomain.CurrentDomain.Load("ShipLoot");
-                Log.LogInfo($"Found Original ShipLoot: {assembly}");
-                return assembly;
+                Assembly assembly = AppDomain.CurrentDomain.Load(Name);
+                Log.LogInfo($"Found {Name}: {assembly}");
+                return true;
             }
             catch (FileNotFoundException)
             {
-                return null;
+                return false;
             }
         }
+
         #endregion
     }
 }

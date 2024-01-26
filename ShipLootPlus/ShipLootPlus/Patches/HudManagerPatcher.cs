@@ -1,18 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Resources;
-using System.Text.RegularExpressions;
-using Figgle;
-using GameNetcodeStuff;
-using HarmonyLib;
+﻿using HarmonyLib;
 using ShipLootPlus.Utils;
-using TMPro;
-using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UI;
-using static ShipLootPlus.ShipLootPlus;
-using Object = UnityEngine.Object;
 
 namespace ShipLootPlus.Patches
 {
@@ -30,36 +18,11 @@ namespace ShipLootPlus.Patches
         {
             if (GameNetworkManager.Instance.localPlayerController == null) return;
             if (!context.performed || !__instance.CanPlayerScan() || __instance.playerPingingScan > -0.5f) return;
-
 #if DEBUG
             Log.LogWarning("in OnScan");
 #endif
             UiHelper.RefreshElementValues();
-            if (ConfigSettings.AlwaysShow.Value) return;
-
-            if (!ConfigSettings.AllowOutside.Value)
-            {
-#if DEBUG
-                Log.LogWarning("!AllowOutside");
-#endif
-                if (!StartOfRound.Instance.inShipPhase && !GameNetworkManager.Instance.localPlayerController.isInHangarShipRoom)
-                    return;
-            }
-
-            if (!ConfigSettings.AlwaysShow.Value)
-            {
-#if DEBUG
-                Log.LogWarning("!AlwaysShow");
-#endif
-                UiHelper.timeLeftDisplay = ConfigSettings.DisplayDuration.Value;
-                GameNetworkManager.Instance.StartCoroutine(UiHelper.DisplayDataCoroutine());
-                if (UiHelper.UiElementList.Any(e => !e.gameOjbect.activeSelf))
-                {
-#if DEBUG
-                    Log.LogWarning("!activeSelf");
-#endif
-                }
-            }
+            UiHelper.TryToggleUi(true);
         }
 
         /// <summary>
@@ -72,6 +35,17 @@ namespace ShipLootPlus.Patches
         {
             UiHelper.CreateUiElements();
             if (GameNetworkManager.Instance.localPlayerController == null) return;
+        }
+
+        /// <summary>
+        /// Toggle UI when state changes happen (moving between zones)
+        /// </summary>
+        /// <param name="__instance"></param>
+        [HarmonyPatch(typeof(HUDManager), "Update")]
+        private static void Postfix(HUDManager __instance)
+        {
+            if (GameNetworkManager.Instance.localPlayerController == null) return;
+            UiHelper.TryToggleUi();
         }
 
         /// <summary>

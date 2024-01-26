@@ -7,9 +7,22 @@ namespace ShipLootPlus.Patches
     [HarmonyPatch]
     internal class PlayerControllerBPatcher
     {
-        [HarmonyPatch(typeof(PlayerControllerB), nameof(SetItemInElevator))]
+        /// <summary>
+        /// Refresh data when user grabs an object
+        /// </summary>
+        [HarmonyPatch(typeof(PlayerControllerB), nameof(BeginGrabObject))]
         [HarmonyPostfix]
-        private static void SetItemInElevator()
+        private static void BeginGrabObject()
+        {
+            UiHelper.RefreshElementValues();
+        }
+
+        /// <summary>
+        /// Refresh data when user drops an object
+        /// </summary>
+        [HarmonyPatch(typeof(PlayerControllerB), nameof(DiscardHeldObject))]
+        [HarmonyPostfix]
+        private static void DiscardHeldObject()
         {
             UiHelper.RefreshElementValues();
         }

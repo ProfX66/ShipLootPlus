@@ -3,7 +3,9 @@ using HarmonyLib;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -19,8 +21,11 @@ namespace ShipLootPlus.Utils
     {
         private static List<string> ItemsToIgnore => new List<string> { "ClipboardManual", "StickyNoteItem" };
         public static List<ShipLootPlusItem> UiElementList { get; set; }
+        public static List<ReplacementData> DataPoints { get; set; }
         public static GameObject ContainerObject { get; set; }
         public static float timeLeftDisplay { get; set; }
+        public static bool IsUpdating { get; set; }
+        public static bool IsDisplaying { get; set; }
 
         #region Methods
 
@@ -42,24 +47,21 @@ namespace ShipLootPlus.Utils
                 },
                 new ShipLootPlusItem
                 {
-                    name = "ShipLoot",
-                    location = ConfigSettings.ShipLootPosition.Value,
+                    name = "Line #1",
                     color = ConvertHexColor(ConfigSettings.ShipLootColor.Value),
                     format = ConfigSettings.ShipLootFormat.Value,
                     enabled = ConfigSettings.ShowShipLoot.Value
                 },
                 new ShipLootPlusItem
                 {
-                    name = "Quota",
-                    location = ConfigSettings.QuotaPosition.Value,
+                    name = "Line #2",
                     color = ConvertHexColor(ConfigSettings.QuotaColor.Value),
                     format = ConfigSettings.QuotaFormat.Value,
                     enabled = ConfigSettings.ShowQuota.Value
                 },
                 new ShipLootPlusItem
                 {
-                    name = "Days",
-                    location = ConfigSettings.DaysPosition.Value,
+                    name = "Line #3",
                     color = ConvertHexColor(ConfigSettings.DaysColor.Value),
                     format = ConfigSettings.DaysFormat.Value,
                     enabled = ConfigSettings.ShowDays.Value
@@ -81,17 +83,17 @@ namespace ShipLootPlus.Utils
                         obj.color = ConvertHexColor(ConfigSettings.LineColor.Value, 0.75f);
                         obj.enabled = ConfigSettings.ShowLine.Value;
                         break;
-                    case "ShipLoot":
+                    case "Line #1":
                         obj.color = ConvertHexColor(ConfigSettings.ShipLootColor.Value);
                         obj.format = ConfigSettings.ShipLootFormat.Value;
                         obj.enabled = ConfigSettings.ShowShipLoot.Value;
                         break;
-                    case "Quota":
+                    case "Line #2":
                         obj.color = ConvertHexColor(ConfigSettings.QuotaColor.Value);
                         obj.format = ConfigSettings.QuotaFormat.Value;
                         obj.enabled = ConfigSettings.ShowQuota.Value;
                         break;
-                    case "Days":
+                    case "Line #3":
                         obj.color = ConvertHexColor(ConfigSettings.DaysColor.Value);
                         obj.format = ConfigSettings.DaysFormat.Value;
                         obj.enabled = ConfigSettings.ShowDays.Value;
@@ -101,12 +103,13 @@ namespace ShipLootPlus.Utils
         }
 
         /// <summary>
-        /// Actually create each UI element
+        /// Create the UI elements
         /// </summary>
         public static void CreateUiElements()
         {
+#if DEBUG
             Log.LogWarning(string.Format("\n{0}", FiggleFonts.Doom.Render("Adding Objects")));
-
+#endif
             GameObject valueCounter = GameObject.Find("/Systems/UI/Canvas/IngamePlayerHUD/BottomMiddle/ValueCounter");
             if (!valueCounter)
             {
@@ -115,9 +118,9 @@ namespace ShipLootPlus.Utils
             }
 
             if (UiElementList == null) { UiElementList = LoadObjectList(); }
+            IsUpdating = false;
 
-            Vector3 offset = new Vector3(0.05f, 0f, 0f);
-            Vector3 scale = new Vector3(0.7f, 0.7f, 0.7f);
+            Vector3 zero = new Vector3(0f, 0f, 0f);
             Vector3 VecLocPos = Vector3.zero;
             Quaternion QuatLocRot = Quaternion.identity;
             Vector3 VecPos = Vector3.zero;
@@ -127,17 +130,20 @@ namespace ShipLootPlus.Utils
             ContainerObject = Object.Instantiate(valueCounter.gameObject, valueCounter.transform.parent, false);
             ContainerObject.name = "ShipLootPlus";
             ContainerObject.transform.Translate(0f, 1f, 0f);
-            Vector3 pos = ContainerObject.transform.localPosition;
-            ContainerObject.transform.localPosition = new Vector3(pos.x + 50f, -50f, pos.z);
+            ContainerObject.transform.localPosition = new Vector3(300f, -81.5f, 0f);
             ContainerObject.transform.Rotate(QuatRot.x, QuatRot.y, 358f);
             TextMeshProUGUI textObj = ContainerObject.GetComponentInChildren<TextMeshProUGUI>();
+            ContainerObject.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+#if DEBUG
             LogPos(ContainerObject.gameObject, out _, out _, out _, out _);
-
+            Log.LogWarning("========================================");
+            Log.LogInfo($"[CON] localScale: {ContainerObject.transform.localScale.x} / {ContainerObject.transform.localScale.y}");
+            Log.LogWarning("========================================");
+#endif
             Image imagObj = ContainerObject.GetComponentInChildren<Image>();
             ShipLootPlusItem ImageElem = UiElementList.Where(e => e.image).FirstOrDefault();
             if (ImageElem != null)
             {
-                Log.LogWarning("ImageElem not null");
                 imagObj.name = ImageElem.name;
                 imagObj.color = ImageElem.color;
                 RectTransform imagTransform = imagObj.GetComponent<RectTransform>();
@@ -146,37 +152,47 @@ namespace ShipLootPlus.Utils
                 imagTransform.sizeDelta = new Vector2(newWidth, newHeight);
                 ImageElem.gameOjbect = imagObj.gameObject;
                 imagObj.enabled = ImageElem.enabled;
+                imagObj.transform.localPosition = zero;
+                imagObj.transform.localScale = new Vector3(1.3f, 1.3f, 1.3f);
+#if DEBUG
                 LogPos(imagObj.gameObject, out _, out _, out _, out _);
+#endif
             }
-
+#if DEBUG
+            Log.LogWarning("========================================");
+            Log.LogInfo($"[IMG] localScale: {imagObj.transform.localScale.x} / {imagObj.transform.localScale.y}");
+            Log.LogWarning("========================================");
+#endif
             GameObject slp = new GameObject
             {
                 name = "SLP"
             };
             slp.transform.SetParent(ContainerObject.transform);
             slp.transform.position = ContainerObject.transform.position;
-            slp.transform.localPosition = ContainerObject.transform.localPosition;
-            slp.AddComponent<RectTransform>();
+            slp.transform.localPosition = new Vector3(100f, 2f, 0f);
+#if DEBUG
             LogPos(slp, out _, out _, out _, out _);
-
-            bool addedFirst = false;
-            GameObject tempObj = null;
-            foreach (ShipLootPlusItem TextElem in UiElementList.Where(e => e.gameOjbect == null && e.enabled && !e.image))
+            Log.LogWarning("========================================");
+            Log.LogInfo($"[SLP] localScale: {slp.transform.localScale.x} / {slp.transform.localScale.y}");
+            Log.LogWarning("========================================");
+#endif
+            slp.transform.localScale = new Vector3(90f, 90f, 90f);
+#if DEBUG
+            Log.LogWarning("========================================");
+            Log.LogInfo($"[SLP] localScale: {slp.transform.localScale.x} / {slp.transform.localScale.y}");
+            Log.LogWarning("========================================");
+#endif
+            IEnumerable<ShipLootPlusItem> TextElements = UiElementList.Where(e => e.gameOjbect == null && !e.image);
+            int EnabledTextElementsCount = TextElements.Count();
+#if DEBUG
+            Log.LogWarning("========================================");
+            Log.LogInfo($"[ETE] Count: {EnabledTextElementsCount} - Count(): {TextElements.Count()}");
+            Log.LogWarning("========================================");
+#endif
+            foreach (ShipLootPlusItem TextElem in TextElements)
             {
                 TextElem.gameOjbect = Object.Instantiate(textObj.gameObject, textObj.transform.parent);
                 TextElem.gameOjbect.name = TextElem.name;
-
-                if (!addedFirst)
-                {
-                    Vector3 tmpPos = textObj.transform.position;
-                    TextElem.gameOjbect.transform.position = new Vector3(tmpPos.x + 0.12f, tmpPos.y + 0.01f, tmpPos.z);
-                    addedFirst = true;
-                }
-                else
-                {
-                    TextElem.gameOjbect.transform.position = tempObj.transform.position + TextElem.offset;
-                }
-
                 TextElem.gameOjbect.transform.SetParent(slp.transform);
                 TextElem.textMeshProUGui = TextElem.gameOjbect.GetComponentInChildren<TextMeshProUGUI>();
                 TextElem.textMeshProUGui.text = TextElem.format;
@@ -186,27 +202,169 @@ namespace ShipLootPlus.Utils
                 TextElem.textMeshProUGui.enableWordWrapping = false;
                 TextElem.textMeshProUGui.maxVisibleLines = 1;
                 TextElem.textMeshProUGui.ForceMeshUpdate();
-
-                RectTransform textTransform = TextElem.textMeshProUGui.GetComponent<RectTransform>();
-                textTransform.sizeDelta = new Vector2(textTransform.sizeDelta.x + 100, textTransform.sizeDelta.y);
-
-                tempObj = TextElem.gameOjbect;
-                LogPos(TextElem.gameOjbect, out _, out _, out _, out _);
             }
 
-            RefreshElementValues();
-
-            RectTransform rectTransform = slp.GetComponent<RectTransform>();
-            ScaleAroundRelative(rectTransform.gameObject, slp.transform.localPosition, scale);
-            LogPos(slp, out _, out _, out _, out _);
-
-            Vector3 posx = slp.transform.localPosition;
-            slp.transform.localPosition = new Vector3(posx.x + 0f, posx.y + 16.5f, posx.z);
-            LogPos(slp, out _, out _, out _, out _);
-
             Object.Destroy(textObj.gameObject);
+            ResizeAndPositionElements(slp);
+            RefreshElementValues();
+#if DEBUG
             Log.LogWarning(string.Format("\n{0}", FiggleFonts.Doom.Render("Showing Objects")));
+#endif
             if (ConfigSettings.AlwaysShow.Value) ContainerObject.SetActive(true);
+        }
+
+        /// <summary>
+        /// Size and position the UI elements
+        /// </summary>
+        /// <param name="GO"></param>
+        public static void ResizeAndPositionElements(GameObject GO)
+        {
+#if DEBUG
+            Log.LogWarning("========================================");
+#endif
+            IEnumerable<ShipLootPlusItem> ElementsToHide = UiElementList.Where(e => !e.enabled && !e.image);
+#if DEBUG
+            Log.LogInfo($"[ResizeAndPosition] Elements to hide: {ElementsToHide.Count()}");
+#endif
+            if (ElementsToHide.Count() > 0)
+            {
+#if DEBUG
+                Log.LogInfo("----------");
+#endif
+                foreach (ShipLootPlusItem Elem in ElementsToHide)
+                {
+                    Log.LogInfo($"[ResizeAndPosition] Hiding => {Elem.name}");
+                    if (ConfigSettings.AlwaysShow.Value) Elem.gameOjbect.SetActive(false);
+                    Elem.textMeshProUGui.enabled = false;
+                }
+            }
+#if DEBUG
+            Log.LogWarning("========================================");
+#endif
+            IEnumerable<ShipLootPlusItem> ElementsToShow = UiElementList.Where(e => e.enabled && !e.image);
+#if DEBUG
+            Log.LogInfo($"[ResizeAndPosition] Elements to show: {ElementsToShow.Count()}");
+#endif
+            if (ElementsToShow.Count() > 0)
+            {
+#if DEBUG
+                Log.LogInfo("----------");
+#endif
+                foreach (ShipLootPlusItem Elem in ElementsToShow)
+                {
+                    Log.LogInfo($"[ResizeAndPosition] Showing => {Elem.name}");
+                    if (ConfigSettings.AlwaysShow.Value) Elem.gameOjbect.SetActive(true);
+                    Elem.textMeshProUGui.enabled = true;
+                }
+            }
+#if DEBUG
+            Log.LogWarning("========================================");
+#endif
+
+            IEnumerable<TextMeshProUGUI> ElementsToResize = GO.GetComponentsInChildren<TextMeshProUGUI>().Where(t => t.enabled);
+            int ElementsToShowCount = ElementsToResize.Count();
+            Vector3 tempVect = new Vector3(0f, 0f, 0f);
+            Vector3 lscale = new Vector3(90f, 90f, 90f);
+            Vector3 lpos = new Vector3(100f, 2f, 0f);
+            float xMult = 0.1f;
+            float yMult = -0.16f;
+            int count = 1;
+#if DEBUG
+            Log.LogInfo($"[ResizeAndPosition] Elements to resize and position: {ElementsToShowCount}");
+            Log.LogWarning("========================================");
+#endif
+
+            foreach (TextMeshProUGUI TextElem in ElementsToResize)
+            {
+                RectTransform textTransform = TextElem.GetComponent<RectTransform>();
+                Vector2 w = new Vector2(330f, textTransform.sizeDelta.y);
+
+                Log.LogInfo($"[ResizeAndPosition] Modifying => {TextElem.name}");
+#if DEBUG
+                Log.LogInfo($"[ResizeAndPosition #{count:D2}]  TELP: {TextElem.transform.localPosition}");
+                Log.LogInfo($"[ResizeAndPosition #{count:D2}]  TMVT: {tempVect}");
+                Log.LogInfo($"[ResizeAndPosition #{count:D2}]  RTSD: {textTransform.sizeDelta}");
+                Log.LogInfo($"[ResizeAndPosition #{count:D2}]  W   : {w}");
+                Log.LogInfo("----------");
+#endif
+
+                switch (ElementsToShowCount)
+                {
+                    case 3:
+                        w = new Vector2(330f, textTransform.sizeDelta.y);
+                        break;
+                    case 2:
+                        w = new Vector2(250f, textTransform.sizeDelta.y);
+                        break;
+                    case 1:
+                        w = new Vector2(200f, textTransform.sizeDelta.y);
+                        break;
+                }
+
+                TextElem.transform.localPosition = tempVect;
+                tempVect = new Vector3(tempVect.x + xMult, tempVect.y + yMult, 0f);
+                textTransform.sizeDelta = w;
+#if DEBUG
+                Log.LogInfo($"[ResizeAndPosition #{count:D2}]> TELP: {TextElem.transform.localPosition}");
+                Log.LogInfo($"[ResizeAndPosition #{count:D2}]> TMVT: {tempVect}");
+                Log.LogInfo($"[ResizeAndPosition #{count:D2}]> RTSD: {textTransform.sizeDelta}");
+                Log.LogInfo($"[ResizeAndPosition #{count:D2}]> W   : {w}");
+                Log.LogInfo("----------");
+#endif
+                count++;
+            }
+
+            Log.LogInfo($"[ResizeAndPosition] Child objects changed: {ElementsToShowCount}");
+#if DEBUG
+            Log.LogWarning("========================================");
+            Log.LogInfo($"[ResizeAndPosition]  LSCA: {lscale}");
+            Log.LogInfo($"[ResizeAndPosition]  LPOS: {lpos}");
+            Log.LogInfo($"[ResizeAndPosition]  GOLS: {GO.transform.localScale}");
+            Log.LogInfo($"[ResizeAndPosition]  GOLP: {GO.transform.localPosition}");
+            Log.LogInfo("----------");
+#endif
+
+            switch (ElementsToShowCount)
+            {
+                case 2:
+                    lscale = new Vector3(120f, 120f, 120f);
+                    lpos = new Vector3(105f, -8f, 0f);
+                    break;
+                case 1:
+                    lscale = new Vector3(150f, 150f, 150f);
+                    lpos = new Vector3(110f, -18f, 0f);
+                    break;
+            }
+#if DEBUG
+            Log.LogInfo($"[ResizeAndPosition]> LSCA: {lscale}");
+            Log.LogInfo($"[ResizeAndPosition]> LPOS: {lpos}");
+#endif
+            GO.transform.localScale = lscale;
+            GO.transform.localPosition = lpos;
+#if DEBUG
+            Log.LogInfo($"[ResizeAndPosition]> GOLS: {GO.transform.localScale}");
+            Log.LogInfo($"[ResizeAndPosition]> GOLP: {GO.transform.localPosition}");
+            Log.LogWarning("========================================");
+#endif
+        }
+
+        /// <summary>
+        /// Caclulate available screen space
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        public static float CalculateAvailableSpace(RectTransform element)
+        {
+            // Get the screen width
+            float screenWidth = Screen.width;
+
+            // Calculate the position of the UI element's left side in screen space
+            float elementLeft = element.position.x - element.rect.width * element.lossyScale.x / 2;
+
+            // Calculate the available space from the left side of the UI element to the left side of the screen
+            float availableSpace = elementLeft;
+
+            return availableSpace;
         }
 
         /// <summary>
@@ -214,6 +372,7 @@ namespace ShipLootPlus.Utils
         /// </summary>
         public static void ResetUiElements()
         {
+            if (UiElementList == null || ContainerObject == null) return;
             UpdateObjectSettings();
 #if DEBUG
             Log.LogWarning($"[ResetUiElements] Image objects to refresh: 1");
@@ -259,6 +418,7 @@ namespace ShipLootPlus.Utils
                 }
             }
 
+            ResizeAndPositionElements(slpObj.gameObject);
             RefreshElementValues();
         }
 
@@ -267,56 +427,165 @@ namespace ShipLootPlus.Utils
         /// </summary>
         public static void RefreshElementValues()
         {
-            if (UiElementList == null) return;
-            if (ContainerObject == null) return;
-            IEnumerable<ShipLootPlusItem> ElementsToUpdate = UiElementList.Where(e => !e.image && e.gameOjbect != null);
 #if DEBUG
+            StackTrace stackTrace = new StackTrace();
+            MethodBase callingMethod = stackTrace.GetFrames().Skip(1).Select(frame => frame.GetMethod()).FirstOrDefault();
+            Log.LogWarning($"[RefreshElementValues:{IsUpdating}] Caller => {FriendlyNull(callingMethod)}");
+#endif
+            if (!IsUpdating) { IsUpdating = true; }
+            if (UiElementList == null || ContainerObject == null)
+            {
+#if DEBUG
+                Log.LogWarning("UiElementList or ContainerObject => NULL");
+#endif
+                return;
+            }
+            IEnumerable<ShipLootPlusItem> ElementsToUpdate = UiElementList.Where(e => !e.image && e.gameOjbect != null);
+ #if DEBUG
             Log.LogWarning($"Elements to update: {ElementsToUpdate.Count()}");
 #endif
-            if (ElementsToUpdate == null || ElementsToUpdate.Count() <= 0) return;
-
-            LootItem shipLootValue = CalculateLootValue(ItemsToIgnore, "Ship");
-            LootItem moonLootValue = CalculateLootValue(ItemsToIgnore, "Moon");
-            LootItem allLootValue = CalculateLootValue(ItemsToIgnore, "All");
-
-            TimeOfDay tod = TimeOfDay.Instance;
-            StartOfRound sor = StartOfRound.Instance;
-            string daysUntilDeadline = tod.daysUntilDeadline.ToString();
-            if (tod.daysUntilDeadline == -1) { daysUntilDeadline = "NOW!"; }
-            if (tod.daysUntilDeadline <= 0) { daysUntilDeadline = "NOW!"; }
+            if (ElementsToUpdate == null || ElementsToUpdate.Count() <= 0)
+            {
+#if DEBUG
+                Log.LogWarning("ElementsToUpdate => NULL or 0");
+#endif
+                return;
+            }
 
             //TODO: Add a datapoint to show what your profit would be like if you collected all scrap and just scrap on the ship
             //      Take into account the company buying rate as another option
             //TODO: Investigate a feature to tell you what scrap on the planet you need to get to make quota (like BetterItemScan)
 
-            Dictionary<string, string> LineReplacements = new Dictionary<string, string>
-            {
-                { "%ShipLootValue%", shipLootValue.Value.ToString("F0") },
-                { "%MoonLootValue%", moonLootValue.Value.ToString("F0") },
-                { "%AllLootValue%", allLootValue.Value.ToString("F0") },
-                { "%ShipLootCount%", shipLootValue.Count.ToString() },
-                { "%MoonLootCount%", moonLootValue.Count.ToString() },
-                { "%AllLootCount%", allLootValue.Count.ToString() },
-                { "%FulfilledValue%", tod.quotaFulfilled.ToString() },
-                { "%QuotaValue%", tod.profitQuota.ToString() },
-                { "%DaysLeft%", daysUntilDeadline },
-                { "%DayNumber%", sor.gameStats.daysSpent.ToString() },
-                { "%DayNumberHuman%", ConvertToHumanFriendly(sor.gameStats.daysSpent) }
-            };
+            TimeOfDay tod = TimeOfDay.Instance;
+            StartOfRound sor = StartOfRound.Instance;
+            LevelWeatherType? currentWeatherEnum = sor.currentLevel?.currentWeather;
+            string currentWeather = currentWeatherEnum.ToString();
+            if (currentWeatherEnum == LevelWeatherType.None) { currentWeather = "Clear"; }
 
-            foreach (ShipLootPlusItem slpi in ElementsToUpdate)
+#if DEBUG
+            Log.LogWarning("========================================");
+            int count = 1;
+            foreach (ReplacementData item in DataPoints)
+            {
+                Log.LogInfo($"[DataPoint #{count:D2}]  {item.Pattern} => {item.Value}");
+                count++;
+            }
+            Log.LogWarning("========================================");
+#endif
+
+            string deadlineDueText = tod.daysUntilDeadline.ToString();
+            string deadlineDueColorPattern = "<color={0}>{1}</color>";
+            string deadlineDueColorText = deadlineDueText;
+            if (tod.daysUntilDeadline >= 2)
+            {
+                deadlineDueColorText = string.Format(deadlineDueColorPattern, "#00ff00ff", deadlineDueText);
+            }
+            else if (tod.daysUntilDeadline == 1)
+            {
+                deadlineDueColorText = string.Format(deadlineDueColorPattern, "#ffa500ff", deadlineDueText);
+            }
+            else
+            {
+                deadlineDueColorText = string.Format(deadlineDueColorPattern, "#ff0000ff", "<b>NOW!</b>");
+            }
+
+            LootItem shipLootValue = CalculateLootValue(ItemsToIgnore, "Ship");
+            LootItem moonLootValue = CalculateLootValue(ItemsToIgnore, "Moon");
+            LootItem allLootValue = CalculateLootValue(ItemsToIgnore, "All");
+            LootItem invLootValue = CalculateLootValue(ItemsToIgnore, "Inv");
+            int companyRate = ((int)(sor.companyBuyingRate * 100f));
+            double profitValue = Math.Round((shipLootValue.Value - tod.quotaFulfilled) * sor.companyBuyingRate);
+            if (shipLootValue.Value <= 0) { profitValue = 0; }
+#if DEBUG
+            Log.LogWarning($"shipLootValue: {shipLootValue.Value}");
+            Log.LogWarning($"moonLootValue: {moonLootValue.Value}");
+            Log.LogWarning($"allLootValue: {allLootValue.Value}");
+            Log.LogWarning($"invLootValue: {invLootValue.Value}");
+            Log.LogInfo($"deadlineDueColorText: {deadlineDueColorText} => {tod.daysUntilDeadline}");
+#endif
+            Parallel.ForEach(DataPoints, (dataPoint) =>
+            {
+                switch (dataPoint.Pattern)
+                {
+                    case string s when Regex.IsMatch(s, @"ShipLootValue", RegexOptions.IgnoreCase):
+                        dataPoint.Value = shipLootValue.Value.ToString("F0");
+                        break;
+                    case string s when Regex.IsMatch(s, @"ShipLootCount", RegexOptions.IgnoreCase):
+                        dataPoint.Value = shipLootValue.Count.ToString();
+                        break;
+                    case string s when Regex.IsMatch(s, @"MoonLootValue", RegexOptions.IgnoreCase):
+                        dataPoint.Value = moonLootValue.Value.ToString("F0");
+                        break;
+                    case string s when Regex.IsMatch(s, @"MoonLootCount", RegexOptions.IgnoreCase):
+                        dataPoint.Value = moonLootValue.Count.ToString();
+                        break;
+                    case string s when Regex.IsMatch(s, @"AllLootValue", RegexOptions.IgnoreCase):
+                        dataPoint.Value = allLootValue.Value.ToString("F0");
+                        break;
+                    case string s when Regex.IsMatch(s, @"AllLootCount", RegexOptions.IgnoreCase):
+                        dataPoint.Value = allLootValue.Count.ToString();
+                        break;
+                    case string s when Regex.IsMatch(s, @"InventoryLootValue", RegexOptions.IgnoreCase):
+                        dataPoint.Value = invLootValue.Value.ToString("F0");
+                        break;
+                    case string s when Regex.IsMatch(s, @"InventoryLootCount", RegexOptions.IgnoreCase):
+                        dataPoint.Value = invLootValue.Count.ToString();
+                        break;
+                    case string s when Regex.IsMatch(s, @"FulfilledValue", RegexOptions.IgnoreCase):
+                        dataPoint.Value = tod.quotaFulfilled.ToString();
+                        break;
+                    case string s when Regex.IsMatch(s, @"QuotaValue", RegexOptions.IgnoreCase):
+                        dataPoint.Value = tod.profitQuota.ToString();
+                        break;
+                    case string s when Regex.IsMatch(s, @"CompanyRate", RegexOptions.IgnoreCase):
+                        dataPoint.Value = companyRate.ToString();
+                        break;
+                    case string s when Regex.IsMatch(s, @"ExpectedProfit", RegexOptions.IgnoreCase):
+                        dataPoint.Value = profitValue.ToString();
+                        break;
+                    case string s when Regex.IsMatch(s, @"Deadline.$", RegexOptions.IgnoreCase):
+                        dataPoint.Value = (tod.daysUntilDeadline <= 0) ? deadlineDueText : tod.daysUntilDeadline.ToString();
+                        break;
+                    case string s when Regex.IsMatch(s, @"DeadlineWithColors", RegexOptions.IgnoreCase):
+                        dataPoint.Value = deadlineDueColorText;
+                        break;
+                    case string s when Regex.IsMatch(s, @"DayNumber.$", RegexOptions.IgnoreCase):
+                        dataPoint.Value = sor.gameStats.daysSpent.ToString();
+                        break;
+                    case string s when Regex.IsMatch(s, @"DayNumberHuman", RegexOptions.IgnoreCase):
+                        dataPoint.Value = ConvertToHumanFriendly(sor.gameStats.daysSpent);
+                        break;
+                    case string s when Regex.IsMatch(s, @"Weather", RegexOptions.IgnoreCase):
+                        dataPoint.Value = currentWeather;
+                        break;
+                }
+            });
+
+#if DEBUG
+            count = 1;
+            foreach (ReplacementData item in DataPoints)
+            {
+                Log.LogInfo($"[DataPoint #{count:D2}]> {item.Pattern} => {item.Value}");
+                count++;
+            }
+            Log.LogWarning("========================================");
+            Log.LogWarning($"IsUpdating: {IsUpdating}");
+#endif
+            Parallel.ForEach(ElementsToUpdate, (slpi) =>
             {
 #if DEBUG
-                Log.LogInfo($"Setting [ {slpi.name} ] text");
-                Log.LogInfo($"Pre-Expansion: {slpi.format}");
+                Log.LogWarning($"IsUpdating>: {IsUpdating} => {slpi.name}");
 #endif
-                string textContent = ExpandVariables(slpi.format, LineReplacements);
+                string textContent = ReplaceValues(slpi.format, DataPoints);
+                //string textContent = await ReplaceValuesAsync(slpi.format, DataPoints);
                 slpi.textMeshProUGui.text = textContent;
+                slpi.textMeshProUGui.ForceMeshUpdate();
                 if (ConfigSettings.AllCaps.Value) { slpi.textMeshProUGui.text = slpi.textMeshProUGui.text.ToUpper(); }
+                IsUpdating = false;
+            });
 #if DEBUG
-                Log.LogInfo("");
+            Log.LogWarning($"IsUpdating: {IsUpdating}");
 #endif
-            }
         }
 
         #endregion
@@ -324,7 +593,7 @@ namespace ShipLootPlus.Utils
         #region Method Helpers
 
         /// <summary>
-        /// Log UI element postions
+        /// Log UI element postions and return the values
         /// </summary>
         /// <param name="InObj"></param>
         /// <param name="VecPos"></param>
@@ -333,9 +602,9 @@ namespace ShipLootPlus.Utils
         /// <param name="QuatLocRot"></param>
         public static void LogPos(GameObject InObj, out Vector3 VecPos, out Quaternion QuatRot, out Vector3 VecLocPos, out Quaternion QuatLocRot)
         {
-#if DEBUG
             InObj.transform.GetPositionAndRotation(out VecPos, out QuatRot);
             InObj.transform.GetLocalPositionAndRotation(out VecLocPos, out QuatLocRot);
+#if DEBUG
             Log.LogInfo($"[{InObj.name}] LocalPos: {VecLocPos} => Pos: {VecPos}");
             Log.LogInfo($"[{InObj.name}] LocalRot: {QuatLocRot} => Rot: {QuatRot}");
             Log.LogWarning("--");
@@ -367,26 +636,85 @@ namespace ShipLootPlus.Utils
         }
 
         /// <summary>
+        /// Toggle UI based on events
+        /// </summary>
+        /// <param name="Timed"></param>
+        public static void TryToggleUi(bool Timed = false)
+        {
+            if (ConfigSettings.AlwaysShow.Value && !Timed)
+            {
+                if (!StartOfRound.Instance.inShipPhase) return;
+                if (!ConfigSettings.AllowOutside.Value && !ConfigSettings.AllowInside.Value)
+                {
+#if DEBUG
+                    Log.LogInfo("Disabling ShipLootPlus UI");
+#endif
+                    ContainerObject.SetActive(false);
+                }
+                else
+                {
+                    if (GameNetworkManager.Instance.localPlayerController.isInsideFactory)
+                    {
+#if DEBUG
+                        Log.LogInfo($"[Inside] Show ShipLootPlus? {ConfigSettings.AllowInside.Value}");
+#endif
+                        ContainerObject.SetActive(ConfigSettings.AllowInside.Value);
+                    }
+                    else if (!GameNetworkManager.Instance.localPlayerController.isInHangarShipRoom && !GameNetworkManager.Instance.localPlayerController.isInsideFactory)
+                    {
+#if DEBUG
+                        Log.LogInfo($"[Outside] Show ShipLootPlus? {ConfigSettings.AllowOutside.Value}");
+#endif
+                        ContainerObject.SetActive(ConfigSettings.AllowOutside.Value);
+                    }
+                }
+            }
+            else if (!ConfigSettings.AlwaysShow.Value && Timed)
+            {
+                if (!IsDisplaying)
+                {
+#if DEBUG
+                    Log.LogWarning("Invoking DisplayDataCoroutine!");
+#endif
+                    GameNetworkManager.Instance.StartCoroutine(DisplayDataCoroutine());
+                }
+                else
+                {
+#if DEBUG
+                    Log.LogWarning("Skipping DisplayDataCoroutine...");
+#endif
+                }
+            }
+        }
+
+        /// <summary>
         /// Display the new elements for a time and then hide them
         /// </summary>
         /// <returns></returns>
         public static IEnumerator DisplayDataCoroutine()
         {
+            if (!IsDisplaying) { IsDisplaying = true; }
+
+            timeLeftDisplay = ConfigSettings.DisplayDuration.Value;
 #if DEBUG
             Log.LogWarning($"Showing [ ContainerObject ] object...");
+            Log.LogInfo($"timeLeftDisplay:  {timeLeftDisplay} - {ConfigSettings.DisplayDuration.Value}");
 #endif
             ContainerObject.SetActive(true);
 
             while (timeLeftDisplay > 0f)
             {
+                Log.LogInfo($"timeLeftDisplay:> {timeLeftDisplay} - {ConfigSettings.DisplayDuration.Value}");
                 float time = timeLeftDisplay;
                 timeLeftDisplay = 0f;
                 yield return new WaitForSeconds(time);
             }
 #if DEBUG
             Log.LogWarning($"Hiding [ ContainerObject ] object...");
+            Log.LogInfo($"timeLeftDisplay:  {timeLeftDisplay} - {ConfigSettings.DisplayDuration.Value}");
 #endif
             ContainerObject.SetActive(false);
+            IsDisplaying = false;
         }
 
         /// <summary>
@@ -435,12 +763,17 @@ namespace ShipLootPlus.Utils
                     scrapList = Object.FindObjectsOfType<GrabbableObject>().Where(s => s.itemProperties.isScrap
                                                                                                 && !Ignored.Contains(s.name)).ToList();
                     break;
+                case "Inv":
+                    scrapList = Object.FindObjectsOfType<GrabbableObject>().Where(s => s.itemProperties.isScrap
+                                                                                                && (s.isHeld || s.isPocketed)
+                                                                                                && !Ignored.Contains(s.name)).ToList();
+                    break;
             }
 
 #if DEBUG
-            Log.LogInfo($"[CalculateLootValue] Valid item count: {scrapList.Count}");
-            Log.LogInfo("Calculating total ship scrap value.");
-            scrapList.Do(s => Log.LogInfo($"{s.name} - ${s.scrapValue}"));
+                Log.LogInfo($"[CalculateLootValue] Valid item count: {scrapList.Count}");
+                Log.LogInfo("Calculating total ship scrap value.");
+                scrapList.Do(s => Log.LogInfo($"{s.name} - ${s.scrapValue}"));
 #endif
             Log.LogDebug("Calculating total ship scrap value.");
             scrapList.Do(s => Log.LogDebug($"{s.name} - ${s.scrapValue}"));
@@ -450,7 +783,6 @@ namespace ShipLootPlus.Utils
                 Value = scrapList.Sum(s => s.scrapValue),
                 Count = scrapList.Count
             };
-
         }
 
         /// <summary>
@@ -481,24 +813,27 @@ namespace ShipLootPlus.Utils
         }
 
         /// <summary>
-        /// Replace all found variables in the passed string from the passed dictionary
+        /// Replaces found tokens in the passed string with the specific data for that token
         /// </summary>
-        /// <param name="Item">String to replace items in</param>
-        /// <param name="Substitutions">Replace data dictionary</param>
+        /// <param name="Line"></param>
+        /// <param name="Data"></param>
         /// <returns>string</returns>
-        public static string ExpandVariables(string format, Dictionary<string, string> Substitutions = null)
+        public static string ReplaceValues(string Line, List<ReplacementData> Data)
         {
-            string stReturn = format;
-            if (Substitutions != null)
+            string stReturn = Line;
+            string pattern = @"%([^%]+)%";
+            Regex regex = new Regex(pattern);
+
+            foreach (Match match in regex.Matches(stReturn))
             {
-                foreach (KeyValuePair<string, string> item in Substitutions)
-                {
-                    string rxPattern = Regex.Escape(item.Key);
-                    stReturn = Regex.Replace(stReturn, rxPattern, item.Value, RegexOptions.IgnoreCase);
+                if (!match.Success) continue;
+                string rxPattern = Regex.Escape($"%{match.Groups[1].Value}%");
+                ReplacementData item = Data.FirstOrDefault(v => Regex.IsMatch(v.Pattern, rxPattern, RegexOptions.IgnoreCase));
+                if (item == null) continue;
+                stReturn = Regex.Replace(stReturn, rxPattern, item.Value, RegexOptions.IgnoreCase);
 #if DEBUG
-                    Log.LogInfo($"Replacing [ {rxPattern} ] in [ {format} ] with [ {item.Value} ] => [{stReturn}]");
+                Log.LogInfo($"Replacing [ {rxPattern} ] in [ {Line} ] with [ {item.Value} ] => [{stReturn}]");
 #endif
-                }
             }
 
             return stReturn;

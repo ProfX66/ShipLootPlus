@@ -10,7 +10,6 @@ namespace ShipLootPlus.Utils
     internal class ShipLootPlusItem
     {
         public string name;
-        public ElementLocation location;
         public Vector3 offset = new Vector3(0.05f, -0.083f, 0f);
         public Color color;
         public string format;
