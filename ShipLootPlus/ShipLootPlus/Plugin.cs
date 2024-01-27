@@ -56,16 +56,18 @@ namespace ShipLootPlus
             }
 
             Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), PluginMetadata.Id);
+
+            UiHelper.DataSubSet = new List<string>();
             UiHelper.DataPoints = new List<ReplacementData>
             {
                 new ReplacementData { Pattern = "%ShipLootValue%", Description = "Value of all scrap on ship"},
                 new ReplacementData { Pattern = "%MoonLootValue%", Description = "Value of all scrap on moon"},
                 new ReplacementData { Pattern = "%AllLootValue%", Description = "Value of all scrap total"},
-                new ReplacementData { Pattern = "%InventoryLootValue%", Description = "Value of all scrap on the player"},
+                //new ReplacementData { Pattern = "%InventoryLootValue%", Description = "Value of all scrap on the player"},
                 new ReplacementData { Pattern = "%ShipLootCount%", Description = "Count of all scrap on ship"},
                 new ReplacementData { Pattern = "%MoonLootCount%", Description = "Count of all scrap on moon"},
                 new ReplacementData { Pattern = "%AllLootCount%", Description = "Count of all scrap total"},
-                new ReplacementData { Pattern = "%InventoryLootCount%", Description = "Count of all scrap on the player"},
+                //new ReplacementData { Pattern = "%InventoryLootCount%", Description = "Count of all scrap on the player"},
                 new ReplacementData { Pattern = "%FulfilledValue%", Description = "Value of turned in scrap for quota"},
                 new ReplacementData { Pattern = "%QuotaValue%", Description = "Value of current quota"},
                 new ReplacementData { Pattern = "%CompanyRate%", Description = "Current company buy rate"},
@@ -74,7 +76,10 @@ namespace ShipLootPlus
                 new ReplacementData { Pattern = "%DeadlineWithColors%", Description = "Quota deadline in days but changes colors based on value"},
                 new ReplacementData { Pattern = "%DayNumber%", Description = "Number of days in the ship/save (E.g. 1, 10)"},
                 new ReplacementData { Pattern = "%DayNumberHuman%", Description = "Human friendly days in the ship/save (E.g. 1st, 10th)"},
-                new ReplacementData { Pattern = "%Weather%", Description = "Current moons weather"}
+                new ReplacementData { Pattern = "%Weather%", Description = "Current moons weather (full name)"},
+                new ReplacementData { Pattern = "%WeatherShort%", Description = "Current moons weather (short name)"},
+                new ReplacementData { Pattern = "%MoonLongName%", Description = "Current moons full name"},
+                new ReplacementData { Pattern = "%MoonShortName%", Description = "Current moons short name"}
             };
             
             int count = 1;
@@ -85,20 +90,21 @@ namespace ShipLootPlus
                 count++;
             }
 
-            ConfigSettings.Initialize(Config, "Shows ShipLoot, Quota, and Days left information on the scan HUD");
+            ConfigSettings.Initialize(Config, $"Allows showing up to {UiHelper.DataPoints.Count} customizable data points on your HUD.");
             ConfigSettings.AlwaysShow.SettingChanged += ToggleUi_SettingChanged;
             ConfigSettings.AllCaps.SettingChanged += RefreshUi_SettingChanged;
+            ConfigSettings.ShortCharLength.SettingChanged += RefreshUi_SettingChanged;
             ConfigSettings.ShowLine.SettingChanged += RedrawRequired_SettingChanged;
             ConfigSettings.LineColor.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.ShowShipLoot.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.ShipLootColor.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.ShipLootFormat.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.ShowQuota.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.QuotaColor.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.QuotaFormat.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.ShowDays.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.DaysColor.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.DaysFormat.SettingChanged += RedrawRequired_SettingChanged;
+            ConfigSettings.ShowLineOne.SettingChanged += RedrawRequired_SettingChanged;
+            ConfigSettings.LineOneColor.SettingChanged += RedrawRequired_SettingChanged;
+            ConfigSettings.LineOneFormat.SettingChanged += RedrawRequired_SettingChanged;
+            ConfigSettings.ShowLineTwo.SettingChanged += RedrawRequired_SettingChanged;
+            ConfigSettings.LineTwoColor.SettingChanged += RedrawRequired_SettingChanged;
+            ConfigSettings.LineTwoFormat.SettingChanged += RedrawRequired_SettingChanged;
+            ConfigSettings.ShowLineThree.SettingChanged += RedrawRequired_SettingChanged;
+            ConfigSettings.LineThreeColor.SettingChanged += RedrawRequired_SettingChanged;
+            ConfigSettings.LineThreeFormat.SettingChanged += RedrawRequired_SettingChanged;
             
             Log.LogInfo(string.Format("Loaded!\n{0}", FiggleFonts.Doom.Render(pluginMetadata.FullName)));
         }
@@ -114,6 +120,7 @@ namespace ShipLootPlus
         /// <param name="e"></param>
         private void RedrawRequired_SettingChanged(object sender, System.EventArgs e)
         {
+            if (UiHelper.ContainerObject == null) return;
             UiHelper.ResetUiElements();
         }
 
@@ -124,6 +131,7 @@ namespace ShipLootPlus
         /// <param name="e"></param>
         private void ToggleUi_SettingChanged(object sender, System.EventArgs e)
         {
+            if (UiHelper.ContainerObject == null) return;
             UiHelper.ContainerObject.SetActive(ConfigSettings.AlwaysShow.Value);
         }
 
@@ -134,6 +142,7 @@ namespace ShipLootPlus
         /// <param name="e"></param>
         private void RefreshUi_SettingChanged(object sender, System.EventArgs e)
         {
+            if (UiHelper.ContainerObject == null) return;
             UiHelper.RefreshElementValues();
         }
 

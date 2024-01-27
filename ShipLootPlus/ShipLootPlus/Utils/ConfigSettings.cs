@@ -2,7 +2,9 @@
 using LethalConfig;
 using LethalConfig.ConfigItems;
 using LethalConfig.ConfigItems.Options;
+using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using static ShipLootPlus.ShipLootPlus;
 
 namespace ShipLootPlus.Utils
@@ -13,21 +15,22 @@ namespace ShipLootPlus.Utils
         public static ConfigEntry<bool> AllowOutside;
         public static ConfigEntry<bool> AllowInside;
         public static ConfigEntry<bool> AllCaps;
+        public static ConfigEntry<int> ShortCharLength;
         public static ConfigEntry<float> DisplayDuration;
         public static ConfigEntry<bool> ShowLine;
         public static ConfigEntry<string> LineColor;
 
-        public static ConfigEntry<bool> ShowShipLoot;
-        public static ConfigEntry<string> ShipLootColor;
-        public static ConfigEntry<string> ShipLootFormat;
+        public static ConfigEntry<bool> ShowLineOne;
+        public static ConfigEntry<string> LineOneColor;
+        public static ConfigEntry<string> LineOneFormat;
 
-        public static ConfigEntry<bool> ShowQuota;
-        public static ConfigEntry<string> QuotaColor;
-        public static ConfigEntry<string> QuotaFormat;
+        public static ConfigEntry<bool> ShowLineTwo;
+        public static ConfigEntry<string> LineTwoColor;
+        public static ConfigEntry<string> LineTwoFormat;
 
-        public static ConfigEntry<bool> ShowDays;
-        public static ConfigEntry<string> DaysColor;
-        public static ConfigEntry<string> DaysFormat;
+        public static ConfigEntry<bool> ShowLineThree;
+        public static ConfigEntry<string> LineThreeColor;
+        public static ConfigEntry<string> LineThreeFormat;
 
         /// <summary>
         /// Create BepInEx config items
@@ -46,29 +49,41 @@ namespace ShipLootPlus.Utils
                 sb.AppendLine();
             }
 
+            StringBuilder sbShort = new StringBuilder();
+            foreach (ReplacementData dataPoint in UiHelper.DataPoints.Where(e => Regex.IsMatch(e.Name, "Short", RegexOptions.IgnoreCase)))
+            {
+                sbShort.AppendLine(dataPoint.Pattern);
+                sbShort.AppendLine(dataPoint.Description);
+                sbShort.AppendLine();
+            }
+
+            //TODO: Add show in spectator option
+
             string category = "General";
             AlwaysShow = config.Bind<bool>(category, "Always Show", false, "Should the hud elements be decoupled from the scanner? (Meaning it will always be shown on screen)");
             AllowOutside = config.Bind<bool>(category, "Allow Outside", false, "Should the scanner hud be shown when scanning outside the ship?");
             AllowInside = config.Bind<bool>(category, "Allow Inside Dungeon", false, "Should the scanner hud be shown when scanning inside the dungeon?");
             AllCaps = config.Bind<bool>(category, "All Caps", false, "Should text be in all caps?");
+            ShortCharLength = config.Bind<int>(category, "Short Character Count", 3, $"How many characters to show for the following data points:\n\n{sbShort}");
+
             DisplayDuration = config.Bind<float>(category, "Display Duration", 5f, "How long in seconds should the items stay on screen. (This is ignored if Always Show is true)");
             ShowLine = config.Bind<bool>(category, "Show Line", true, "Shows the line element");
             LineColor = config.Bind<string>(category, "Line Color", "2D5122", "Line color (hex code)");
 
             category = "Line #1";
-            ShowShipLoot = config.Bind<bool>(category, "Show", true, $"Shows {category} on the hud.");
-            ShipLootColor = config.Bind<string>(category, "Color", "19D56C", $"{category} text color. (hex code)");
-            ShipLootFormat = config.Bind<string>(category, "Format", "Ship: $%ShipLootValue%(%ShipLootCount%)/$%MoonLootValue%(%MoonLootCount%)", $"{category} text format.\n\n{sb}");
+            ShowLineOne = config.Bind<bool>(category, "Show", true, $"Shows {category} on the hud.");
+            LineOneColor = config.Bind<string>(category, "Color", "19D56C", $"{category} text color. (hex code)");
+            LineOneFormat = config.Bind<string>(category, "Format", "Ship: $%ShipLootValue%(%ShipLootCount%)/$%MoonLootValue%(%MoonLootCount%) <i>[%MoonShortName%:%Weather%]</i>", $"{category} text format.\n\n{sb}");
 
             category = "Line #2";
-            ShowQuota = config.Bind<bool>(category, "Show", true, $"Shows the {category} on the scan hud.");
-            QuotaColor = config.Bind<string>(category, "Color", "19D56C", $"{category} text color. (hex code)");
-            QuotaFormat = config.Bind<string>(category, "Format", "Quota: $%FulfilledValue%/$%QuotaValue% - $%ExpectedProfit%(%CompanyRate%%)", $"{category} text format.\n\n{sb}");
+            ShowLineTwo = config.Bind<bool>(category, "Show", true, $"Shows the {category} on the scan hud.");
+            LineTwoColor = config.Bind<string>(category, "Color", "19D56C", $"{category} text color. (hex code)");
+            LineTwoFormat = config.Bind<string>(category, "Format", "Quota: $%FulfilledValue%/$%QuotaValue% - Prof: $%ExpectedProfit%(%CompanyRate%%)", $"{category} text format.\n\n{sb}");
 
             category = "Line #3";
-            ShowDays = config.Bind<bool>(category, "Show", true, $"Shows the {category} on the scan hud.");
-            DaysColor = config.Bind<string>(category, "Color", "19D56C", $"{category} text color. (hex code)");
-            DaysFormat = config.Bind<string>(category, "Format", "Deadline: %Deadline% - %DayNumberHuman% day", $"{category} text format.\n\n{sb}");
+            ShowLineThree = config.Bind<bool>(category, "Show", true, $"Shows the {category} on the scan hud.");
+            LineThreeColor = config.Bind<string>(category, "Color", "19D56C", $"{category} text color. (hex code)");
+            LineThreeFormat = config.Bind<string>(category, "Format", "Deadline: %Deadline% - %DayNumberHuman% day", $"{category} text format.\n\n{sb}");
 
             try
             {
@@ -91,24 +106,25 @@ namespace ShipLootPlus.Utils
             LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(AllowOutside, false));
             LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(AllowInside, false));
             LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(AllCaps, false));
+            LethalConfigManager.AddConfigItem(new IntSliderConfigItem(ShortCharLength, new IntSliderOptions { Min = 1, Max = 30, RequiresRestart = false }));
             LethalConfigManager.AddConfigItem(new FloatSliderConfigItem(DisplayDuration, new FloatSliderOptions { Min = 1f, Max = 60f, RequiresRestart = false }));
             LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(ShowLine, false));
             LethalConfigManager.AddConfigItem(new TextInputFieldConfigItem(LineColor, false));
 
             //ShipLoot
-            LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(ShowShipLoot, false));
-            LethalConfigManager.AddConfigItem(new TextInputFieldConfigItem(ShipLootColor, false));
-            LethalConfigManager.AddConfigItem(new TextInputFieldConfigItem(ShipLootFormat, false));
+            LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(ShowLineOne, false));
+            LethalConfigManager.AddConfigItem(new TextInputFieldConfigItem(LineOneColor, false));
+            LethalConfigManager.AddConfigItem(new TextInputFieldConfigItem(LineOneFormat, false));
 
             //Quota
-            LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(ShowQuota, false));
-            LethalConfigManager.AddConfigItem(new TextInputFieldConfigItem(QuotaColor, false));
-            LethalConfigManager.AddConfigItem(new TextInputFieldConfigItem(QuotaFormat, false));
+            LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(ShowLineTwo, false));
+            LethalConfigManager.AddConfigItem(new TextInputFieldConfigItem(LineTwoColor, false));
+            LethalConfigManager.AddConfigItem(new TextInputFieldConfigItem(LineTwoFormat, false));
 
             //Days Left
-            LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(ShowDays, false));
-            LethalConfigManager.AddConfigItem(new TextInputFieldConfigItem(DaysColor, false));
-            LethalConfigManager.AddConfigItem(new TextInputFieldConfigItem(DaysFormat, false));
+            LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(ShowLineThree, false));
+            LethalConfigManager.AddConfigItem(new TextInputFieldConfigItem(LineThreeColor, false));
+            LethalConfigManager.AddConfigItem(new TextInputFieldConfigItem(LineThreeFormat, false));
         }
 
         #region Future
