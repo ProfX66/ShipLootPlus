@@ -20,6 +20,7 @@ namespace ShipLootPlus.Utils
     internal class UiHelper
     {
         private static List<string> ItemsToIgnore => new List<string> { "ClipboardManual", "StickyNoteItem" };
+        public static List<string> DataSubSet { get; set; }
         public static List<ShipLootPlusItem> UiElementList { get; set; }
         public static List<ReplacementData> DataPoints { get; set; }
         public static GameObject ContainerObject { get; set; }
@@ -48,23 +49,23 @@ namespace ShipLootPlus.Utils
                 new ShipLootPlusItem
                 {
                     name = "Line #1",
-                    color = ConvertHexColor(ConfigSettings.ShipLootColor.Value),
-                    format = ConfigSettings.ShipLootFormat.Value,
-                    enabled = ConfigSettings.ShowShipLoot.Value
+                    color = ConvertHexColor(ConfigSettings.LineOneColor.Value),
+                    format = ConfigSettings.LineOneFormat.Value,
+                    enabled = ConfigSettings.ShowLineOne.Value
                 },
                 new ShipLootPlusItem
                 {
                     name = "Line #2",
-                    color = ConvertHexColor(ConfigSettings.QuotaColor.Value),
-                    format = ConfigSettings.QuotaFormat.Value,
-                    enabled = ConfigSettings.ShowQuota.Value
+                    color = ConvertHexColor(ConfigSettings.LineTwoColor.Value),
+                    format = ConfigSettings.LineTwoFormat.Value,
+                    enabled = ConfigSettings.ShowLineTwo.Value
                 },
                 new ShipLootPlusItem
                 {
                     name = "Line #3",
-                    color = ConvertHexColor(ConfigSettings.DaysColor.Value),
-                    format = ConfigSettings.DaysFormat.Value,
-                    enabled = ConfigSettings.ShowDays.Value
+                    color = ConvertHexColor(ConfigSettings.LineThreeColor.Value),
+                    format = ConfigSettings.LineThreeFormat.Value,
+                    enabled = ConfigSettings.ShowLineThree.Value
                 }
             };
         }
@@ -75,6 +76,8 @@ namespace ShipLootPlus.Utils
         private static void UpdateObjectSettings()
         {
             Log.LogInfo($"[UpdateObjectSettings] Updating HUD element object data from config values");
+            DataSubSet.Clear();
+
             foreach (var obj in UiElementList)
             {
                 switch (obj.name)
@@ -84,22 +87,25 @@ namespace ShipLootPlus.Utils
                         obj.enabled = ConfigSettings.ShowLine.Value;
                         break;
                     case "Line #1":
-                        obj.color = ConvertHexColor(ConfigSettings.ShipLootColor.Value);
-                        obj.format = ConfigSettings.ShipLootFormat.Value;
-                        obj.enabled = ConfigSettings.ShowShipLoot.Value;
+                        obj.color = ConvertHexColor(ConfigSettings.LineOneColor.Value);
+                        obj.format = ConfigSettings.LineOneFormat.Value;
+                        obj.enabled = ConfigSettings.ShowLineOne.Value;
                         break;
                     case "Line #2":
-                        obj.color = ConvertHexColor(ConfigSettings.QuotaColor.Value);
-                        obj.format = ConfigSettings.QuotaFormat.Value;
-                        obj.enabled = ConfigSettings.ShowQuota.Value;
+                        obj.color = ConvertHexColor(ConfigSettings.LineTwoColor.Value);
+                        obj.format = ConfigSettings.LineTwoFormat.Value;
+                        obj.enabled = ConfigSettings.ShowLineTwo.Value;
                         break;
                     case "Line #3":
-                        obj.color = ConvertHexColor(ConfigSettings.DaysColor.Value);
-                        obj.format = ConfigSettings.DaysFormat.Value;
-                        obj.enabled = ConfigSettings.ShowDays.Value;
+                        obj.color = ConvertHexColor(ConfigSettings.LineThreeColor.Value);
+                        obj.format = ConfigSettings.LineThreeFormat.Value;
+                        obj.enabled = ConfigSettings.ShowLineThree.Value;
                         break;
                 }
+
+                SetDataSubSet(obj.format);
             }
+            Log.LogWarning($"[DataSubset-Changed] Count: {DataSubSet.Count} => {string.Join(";", DataSubSet)}");
         }
 
         /// <summary>
@@ -117,7 +123,13 @@ namespace ShipLootPlus.Utils
                 return;
             }
 
-            if (UiElementList == null) { UiElementList = LoadObjectList(); }
+            if (UiElementList == null)
+            {
+                UiElementList = LoadObjectList();
+                DataSubSet.Clear();
+                UiElementList.ForEach(s => SetDataSubSet(s.format));
+                Log.LogWarning($"[DataSubset-Added] Count: {DataSubSet.Count} => {string.Join(";", DataSubSet)}");
+            }
             IsUpdating = false;
 
             Vector3 zero = new Vector3(0f, 0f, 0f);
@@ -423,6 +435,23 @@ namespace ShipLootPlus.Utils
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="LineItem"></param>
+        public static void SetDataSubSet(string LineItem)
+        {
+            if (string.IsNullOrEmpty(LineItem)) return;
+            string pattern = @"%([^%]+)%";
+            Regex regex = new Regex(pattern);
+
+            foreach (Match match in regex.Matches(LineItem))
+            {
+                string item = match.Groups[1].Value;
+                if (!DataSubSet.Contains(item)) DataSubSet.Add(item);
+            }
+        }
+
+        /// <summary>
         /// Refresh actual data values
         /// </summary>
         public static void RefreshElementValues()
@@ -462,6 +491,14 @@ namespace ShipLootPlus.Utils
             string currentWeather = currentWeatherEnum.ToString();
             if (currentWeatherEnum == LevelWeatherType.None) { currentWeather = "Clear"; }
 
+            string currentWeatherShort = currentWeather;
+            if (ConfigSettings.ShortCharLength.Value <= currentWeather.Length) { currentWeatherShort = currentWeather.Substring(0, ConfigSettings.ShortCharLength.Value); }
+
+            string currentMoon = Regex.Replace(sor.currentLevel.PlanetName, @"^\d{1,} ?", "", RegexOptions.IgnoreCase);
+            if (Regex.IsMatch(currentMoon, "Gordion", RegexOptions.IgnoreCase)) { currentMoon = "Company Building"; }
+
+            string currentMoonShort = currentMoon;
+            if (ConfigSettings.ShortCharLength.Value <= currentMoon.Length) { currentMoonShort = currentMoon.Substring(0, ConfigSettings.ShortCharLength.Value); }
 #if DEBUG
             Log.LogWarning("========================================");
             int count = 1;
@@ -553,16 +590,25 @@ namespace ShipLootPlus.Utils
                         dataPoint.Value = sor.gameStats.daysSpent.ToString();
                         break;
                     case string s when Regex.IsMatch(s, @"DayNumberHuman", RegexOptions.IgnoreCase):
-                        dataPoint.Value = ConvertToHumanFriendly(sor.gameStats.daysSpent);
+                        dataPoint.Value = ConvertToHumanFriendly(sor.gameStats.daysSpent + 1f);
                         break;
-                    case string s when Regex.IsMatch(s, @"Weather", RegexOptions.IgnoreCase):
+                    case string s when Regex.IsMatch(s, @"Weather.$", RegexOptions.IgnoreCase):
                         dataPoint.Value = currentWeather;
+                        break;
+                    case string s when Regex.IsMatch(s, @"WeatherShort", RegexOptions.IgnoreCase):
+                        dataPoint.Value = currentWeatherShort;
+                        break;
+                    case string s when Regex.IsMatch(s, @"MoonLongName", RegexOptions.IgnoreCase):
+                        dataPoint.Value = currentMoon;
+                        break;
+                    case string s when Regex.IsMatch(s, @"MoonShortName", RegexOptions.IgnoreCase):
+                        dataPoint.Value = currentMoonShort;
                         break;
                 }
             });
 
 #if DEBUG
-            count = 1;
+            count = 1; 
             foreach (ReplacementData item in DataPoints)
             {
                 Log.LogInfo($"[DataPoint #{count:D2}]> {item.Pattern} => {item.Value}");
@@ -576,7 +622,7 @@ namespace ShipLootPlus.Utils
 #if DEBUG
                 Log.LogWarning($"IsUpdating>: {IsUpdating} => {slpi.name}");
 #endif
-                string textContent = ReplaceValues(slpi.format, DataPoints);
+                string textContent = ReplaceValues(slpi.format, DataPoints.Where(d => DataSubSet.Contains(d.Name)).ToList());
                 slpi.textMeshProUGui.text = textContent;
                 slpi.textMeshProUGui.ForceMeshUpdate();
                 if (ConfigSettings.AllCaps.Value) { slpi.textMeshProUGui.text = slpi.textMeshProUGui.text.ToUpper(); }
@@ -796,6 +842,8 @@ namespace ShipLootPlus.Utils
         static string ConvertToHumanFriendly(float number)
         {
             int intValue = (int)number;
+
+            if (intValue <= 0) { return "Zero"; }
 
             if (intValue % 100 >= 11 && intValue % 100 <= 13)
             {

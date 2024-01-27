@@ -1,5 +1,6 @@
 ﻿using HarmonyLib;
 using ShipLootPlus.Utils;
+using UnityEngine.AI;
 
 namespace ShipLootPlus.Patches
 {
@@ -37,6 +38,26 @@ namespace ShipLootPlus.Patches
         }
 
         /// <summary>
+        /// Refresh data when the lobby starts
+        /// </summary>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(StartOfRound), nameof(Start))]
+        private static void Start()
+        {
+            UiHelper.RefreshElementValues();
+        }
+
+        /// <summary>
+        /// Refresh data at the end of the game round
+        /// </summary>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(StartOfRound), nameof(SetTimeAndPlanetToSavedSettings))]
+        private static void SetTimeAndPlanetToSavedSettings()
+        {
+            UiHelper.RefreshElementValues();
+        }
+
+        /// <summary>
         /// Refresh data on RPC ship sync
         /// </summary>
         [HarmonyPatch(typeof(StartOfRound), nameof(SyncShipUnlockablesClientRpc))]
@@ -63,6 +84,16 @@ namespace ShipLootPlus.Patches
         [HarmonyPatch(typeof(StartOfRound), nameof(LoadShipGrabbableItems))]
         [HarmonyPostfix]
         private static void LoadShipGrabbableItems()
+        {
+            UiHelper.RefreshElementValues();
+        }
+
+        /// <summary>
+        /// Refresh the data when the ship loot values have changed
+        /// </summary>
+        [HarmonyPatch(typeof(StartOfRound), nameof(SetMapScreenInfoToCurrentLevel))]
+        [HarmonyPostfix]
+        private static void SetMapScreenInfoToCurrentLevel()
         {
             UiHelper.RefreshElementValues();
         }
