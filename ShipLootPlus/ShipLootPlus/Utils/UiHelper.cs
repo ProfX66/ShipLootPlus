@@ -692,6 +692,9 @@ namespace ShipLootPlus.Utils
         {
             if (ConfigSettings.AlwaysShow.Value && !Timed)
             {
+#if DEBUG
+                Log.LogWarning($"AlwaysShow => {ConfigSettings.AlwaysShow.Value} | Timed => {Timed}");
+#endif
                 if (!StartOfRound.Instance.inShipPhase) return;
                 if (!ConfigSettings.AllowOutside.Value && !ConfigSettings.AllowInside.Value)
                 {
@@ -720,7 +723,35 @@ namespace ShipLootPlus.Utils
             }
             else if (!ConfigSettings.AlwaysShow.Value && Timed)
             {
-                if (!IsDisplaying)
+#if DEBUG
+                Log.LogWarning($"AlwaysShow => {ConfigSettings.AlwaysShow.Value} | Timed => {Timed}");
+#endif
+                bool CanShow = true;
+                if (!StartOfRound.Instance.inShipPhase)
+                {
+                    CanShow = false;
+
+                    if (ConfigSettings.AllowInside.Value && GameNetworkManager.Instance.localPlayerController.isInsideFactory)
+                    {
+#if DEBUG
+                        Log.LogInfo($"[Inside] Show ShipLootPlus? {ConfigSettings.AllowInside.Value}");
+#endif
+                        CanShow = true;
+                    }
+                    else if (ConfigSettings.AllowOutside.Value && !GameNetworkManager.Instance.localPlayerController.isInHangarShipRoom && !GameNetworkManager.Instance.localPlayerController.isInsideFactory)
+                    {
+#if DEBUG
+                        Log.LogInfo($"[Outside] Show ShipLootPlus? {ConfigSettings.AllowOutside.Value}");
+#endif
+                        CanShow = true;
+                    }
+                    else if (GameNetworkManager.Instance.localPlayerController.isInHangarShipRoom)
+                    {
+                        CanShow = true;
+                    }
+                }
+
+                if (!IsDisplaying && CanShow)
                 {
 #if DEBUG
                     Log.LogWarning("Invoking DisplayDataCoroutine!");
@@ -753,7 +784,9 @@ namespace ShipLootPlus.Utils
 
             while (timeLeftDisplay > 0f)
             {
+#if DEBUG
                 Log.LogInfo($"timeLeftDisplay:> {timeLeftDisplay} - {ConfigSettings.DisplayDuration.Value}");
+#endif
                 float time = timeLeftDisplay;
                 timeLeftDisplay = 0f;
                 yield return new WaitForSeconds(time);
@@ -891,6 +924,6 @@ namespace ShipLootPlus.Utils
             return stReturn;
         }
 
-        #endregion
+#endregion
     }
 }
