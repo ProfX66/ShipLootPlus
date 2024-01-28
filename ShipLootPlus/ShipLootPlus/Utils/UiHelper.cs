@@ -815,6 +815,7 @@ namespace ShipLootPlus.Utils
                 case "Inv":
                     scrapList = Object.FindObjectsOfType<GrabbableObject>().Where(s => s.itemProperties.isScrap
                                                                                                 && (s.isHeld || s.isPocketed)
+                                                                                                && s.playerHeldBy.IsLocalPlayer
                                                                                                 && !Ignored.Contains(s.name)).ToList();
                     break;
             }
