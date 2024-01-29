@@ -1,3 +1,11 @@
+# v1.0.3
+- Hopefully fixed a compatibility issue with mods that modify the scanner to be able to perpetually scan (like [Hold Scan Button](https://thunderstore.io/c/lethal-company/p/FutureSavior/Hold_Scan_Button/))
+- Added a new configuration section for "On Scan"
+  - Moved "Display Duration" into this new section
+  - Added "Reset Duration Timer On Scan" option which will reset the timer of the UI when a scan is initialized, which keeps the UI always on screen if scanning is active (defaults to disabled).
+  - Added "Refresh Data On Scan" option which will force a data update on scan, this is not really needed as all data is updated via event triggers, but it was left in the last two releases as a way to force refresh on demand. This is what is incompatible with mods like [Hold Scan Button](https://thunderstore.io/c/lethal-company/p/FutureSavior/Hold_Scan_Button/) (defaults to disabled).
+- Fixed an issue where moon scrap count was showing as 1 item while in space.
+
 # v1.0.2
 - Fixed an issue where "Always On" mode did not function correctly when "Allow Outside" and/or "Allow Inside" was disabled.
 - Fixed an issue where the "On Scan" timeout didn't get reset when scanning again

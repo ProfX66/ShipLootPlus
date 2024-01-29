@@ -838,6 +838,7 @@ namespace ShipLootPlus.Utils
                                                                                                 && !Ignored.Contains(s.name)).ToList();
                     break;
                 case "Moon":
+                    if (StartOfRound.Instance.inShipPhase) break;
                     scrapList = Object.FindObjectsOfType<GrabbableObject>().Where(s => s.itemProperties.isScrap
                                                                                                 && !s.isInShipRoom
                                                                                                 && !s.isInElevator
@@ -855,10 +856,11 @@ namespace ShipLootPlus.Utils
                     break;
             }
 
+            if (scrapList == null) return new LootItem { Value = 0, Count = 0 };
 #if DEBUG
-                Log.LogInfo($"[CalculateLootValue] Valid item count: {scrapList.Count}");
-                Log.LogInfo("Calculating total ship scrap value.");
-                scrapList.Do(s => Log.LogInfo($"{s.name} - ${s.scrapValue}"));
+            Log.LogInfo($"[CalculateLootValue] Valid item count: {scrapList.Count}");
+            Log.LogInfo("Calculating total ship scrap value.");
+            scrapList.Do(s => Log.LogInfo($"{s.name} - ${s.scrapValue}"));
 #endif
             Log.LogDebug("Calculating total ship scrap value.");
             scrapList.Do(s => Log.LogDebug($"{s.name} - ${s.scrapValue}"));

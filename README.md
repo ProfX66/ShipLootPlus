@@ -168,10 +168,11 @@ This is what the HUD looks like with its default data points.
     # Default value: false
     Allow Inside Dungeon = false
   ```
-
   </details>
 
-  #### [_Display Duration (On Scan)_]
+  ### On Scan Settings
+
+  #### [_Display Duration_]
   Sets the timeout for the GUI when a scan is initiated
 
   <details>
@@ -182,6 +183,42 @@ This is what the HUD looks like with its default data points.
     # Setting type: Single
     # Default value: 5
     Display Duration = 5
+  ```
+
+  </details>
+
+  #### [_Reset Duration Timer On Scan_]
+  This will keep the UI timeout on scan active if the scanner is activated again.
+
+  <details>
+    <summary>Configuration</summary>
+
+  ```cfg
+    ## Should the duration timer get reset if you scan?
+    # Setting type: Boolean
+    # Default value: false
+    Reset Duration Timer On Scan = true
+  ```
+
+  </details>
+
+  #### [_Refresh Data On Scan_]
+  Forces the scanner to do a data refresh when its active. This is not really needed as every data point is updated by event triggers but can allow you to on demand updated data.
+
+  > **WARNING**: This can cause lag and potentially crashes if you are using macros to spam the scanner and/or are using mods which do it (like [Hold Scan Button](https://thunderstore.io/c/lethal-company/p/FutureSavior/Hold_Scan_Button/))
+
+  <details>
+    <summary>Configuration</summary>
+
+  ```cfg
+    ## Should a data refresh be forced when scanning?
+    ## 
+    ## All data is kept updated when events are triggered (player grabs an item, items get moved into the ship, etc.) so this isn't required.
+    ## 
+    ## <b>IMPORTANT</B>: This could cause issues with any mod that makes the scanner always on
+    # Setting type: Boolean
+    # Default value: false
+    Refresh Data On Scan = false
   ```
 
   </details>

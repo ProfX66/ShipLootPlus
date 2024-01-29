@@ -22,8 +22,8 @@ namespace ShipLootPlus.Patches
 #if DEBUG
             Log.LogWarning("in OnScan");
 #endif
-            UiHelper.timeLeftDisplay = ConfigSettings.DisplayDuration.Value;
-            UiHelper.RefreshElementValues();
+            if (ConfigSettings.DisplayDurationReset.Value) UiHelper.timeLeftDisplay = ConfigSettings.DisplayDuration.Value;
+            if (ConfigSettings.RefreshOnScan.Value) UiHelper.RefreshElementValues();
             UiHelper.TryToggleUi(true);
         }
 

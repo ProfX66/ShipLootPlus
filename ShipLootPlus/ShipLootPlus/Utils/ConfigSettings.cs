@@ -16,9 +16,12 @@ namespace ShipLootPlus.Utils
         public static ConfigEntry<bool> AllowInside;
         public static ConfigEntry<bool> AllCaps;
         public static ConfigEntry<int> ShortCharLength;
-        public static ConfigEntry<float> DisplayDuration;
         public static ConfigEntry<bool> ShowLine;
         public static ConfigEntry<string> LineColor;
+
+        public static ConfigEntry<float> DisplayDuration;
+        public static ConfigEntry<bool> DisplayDurationReset;
+        public static ConfigEntry<bool> RefreshOnScan;
 
         public static ConfigEntry<bool> ShowLineOne;
         public static ConfigEntry<string> LineOneColor;
@@ -65,10 +68,13 @@ namespace ShipLootPlus.Utils
             AllowInside = config.Bind<bool>(category, "Allow Inside Dungeon", false, "Should the scanner hud be shown when scanning inside the dungeon?");
             AllCaps = config.Bind<bool>(category, "All Caps", false, "Should text be in all caps?");
             ShortCharLength = config.Bind<int>(category, "Short Character Count", 3, $"How many characters to show for the following data points:\n\n{sbShort}");
-
-            DisplayDuration = config.Bind<float>(category, "Display Duration", 5f, "How long in seconds should the items stay on screen. (This is ignored if Always Show is true)");
             ShowLine = config.Bind<bool>(category, "Show Line", true, "Shows the line element");
             LineColor = config.Bind<string>(category, "Line Color", "2D5122", "Line color (hex code)");
+
+            category = "On Scan";
+            DisplayDuration = config.Bind<float>(category, "Display Duration", 5f, "How long in seconds should the items stay on screen. (This is ignored if Always Show is true)");
+            DisplayDurationReset = config.Bind<bool>(category, "Reset Duration Timer On Scan", false, "Should the duration timer get reset if you scan?");
+            RefreshOnScan = config.Bind<bool>(category, "Refresh Data On Scan", false, "Should a data refresh be forced when scanning?\n\nAll data is kept updated when events are triggered (player grabs an item, items get moved into the ship, etc.) so this isn't required.\n\n<b>IMPORTANT</B>: This could cause issues with any mod that makes the scanner always on");
 
             category = "Line #1";
             ShowLineOne = config.Bind<bool>(category, "Show", true, $"Shows {category} on the hud.");
@@ -107,9 +113,13 @@ namespace ShipLootPlus.Utils
             LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(AllowInside, false));
             LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(AllCaps, false));
             LethalConfigManager.AddConfigItem(new IntSliderConfigItem(ShortCharLength, new IntSliderOptions { Min = 1, Max = 30, RequiresRestart = false }));
-            LethalConfigManager.AddConfigItem(new FloatSliderConfigItem(DisplayDuration, new FloatSliderOptions { Min = 1f, Max = 60f, RequiresRestart = false }));
             LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(ShowLine, false));
             LethalConfigManager.AddConfigItem(new TextInputFieldConfigItem(LineColor, false));
+
+            //On Scan
+            LethalConfigManager.AddConfigItem(new FloatSliderConfigItem(DisplayDuration, new FloatSliderOptions { Min = 1f, Max = 60f, RequiresRestart = false }));
+            LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(DisplayDurationReset, false));
+            LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(RefreshOnScan, false));
 
             //ShipLoot
             LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(ShowLineOne, false));
