@@ -693,32 +693,34 @@ namespace ShipLootPlus.Utils
             if (ConfigSettings.AlwaysShow.Value && !Timed)
             {
 #if DEBUG
-                Log.LogWarning($"AlwaysShow => {ConfigSettings.AlwaysShow.Value} | Timed => {Timed}");
+                //Log.LogWarning($"AlwaysShow => {ConfigSettings.AlwaysShow.Value} | Timed => {Timed}");
 #endif
-                if (!StartOfRound.Instance.inShipPhase) return;
-                if (!ConfigSettings.AllowOutside.Value && !ConfigSettings.AllowInside.Value)
+                if (StartOfRound.Instance.inShipPhase)
                 {
-#if DEBUG
-                    Log.LogInfo("Disabling ShipLootPlus UI");
-#endif
-                    ContainerObject.SetActive(false);
+                    ContainerObject.SetActive(true);
+                    return;
                 }
-                else
+
+                if (GameNetworkManager.Instance.localPlayerController.isInsideFactory)
                 {
-                    if (GameNetworkManager.Instance.localPlayerController.isInsideFactory)
-                    {
 #if DEBUG
-                        Log.LogInfo($"[Inside] Show ShipLootPlus? {ConfigSettings.AllowInside.Value}");
+                    //Log.LogInfo($"[Inside] Show ShipLootPlus? {ConfigSettings.AllowInside.Value}");
 #endif
-                        ContainerObject.SetActive(ConfigSettings.AllowInside.Value);
-                    }
-                    else if (!GameNetworkManager.Instance.localPlayerController.isInHangarShipRoom && !GameNetworkManager.Instance.localPlayerController.isInsideFactory)
-                    {
+                    ContainerObject.SetActive(ConfigSettings.AllowInside.Value);
+                }
+                else if (!GameNetworkManager.Instance.localPlayerController.isInHangarShipRoom && !GameNetworkManager.Instance.localPlayerController.isInsideFactory)
+                {
 #if DEBUG
-                        Log.LogInfo($"[Outside] Show ShipLootPlus? {ConfigSettings.AllowOutside.Value}");
+                    //Log.LogInfo($"[Outside] Show ShipLootPlus? {ConfigSettings.AllowOutside.Value}");
 #endif
-                        ContainerObject.SetActive(ConfigSettings.AllowOutside.Value);
-                    }
+                    ContainerObject.SetActive(ConfigSettings.AllowOutside.Value);
+                }
+                else if (GameNetworkManager.Instance.localPlayerController.isInHangarShipRoom)
+                {
+#if DEBUG
+                    //Log.LogInfo("[Ship] Show ShipLootPlus");
+#endif
+                    ContainerObject.SetActive(true);
                 }
             }
             else if (!ConfigSettings.AlwaysShow.Value && Timed)

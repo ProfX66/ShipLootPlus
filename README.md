@@ -68,7 +68,11 @@ This is what the HUD looks like with its default data points.
   ```
 
   ### Rich Text Support
-  You can introduce further customizations inline with your formats. User [This Guide](https://docs.unity3d.com/Packages/com.unity.ugui@1.0/manual/StyledText.html) to learn how.
+  You can introduce further customizations inline with your formats.
+
+  Here are some resources to understand Rich Text and what tags are available (not every tag will work as the font that the game uses lacks some support)
+  - [Style text with rich text tags](https://docs.unity3d.com/Manual/UIE-rich-text-tags.html)
+  - [Supported rich text tags](https://docs.unity3d.com/Manual/UIE-supported-tags.html)
 
   Inline Rich Text formatting will override the text color for the specific word or DataPoint in the line, they are applied after the text line color configuration.
 

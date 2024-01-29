@@ -17,7 +17,7 @@ namespace ShipLootPlus
         public const string Author = "PXC";
         public const string Name = "ShipLootPlus";
         public const string Id = "PXC.ShipLootPlus";
-        public const string Version = "1.0.1";
+        public const string Version = "1.0.2";
         public string FullName => string.Format("{0} v{1}", Name, Version);
     }
 

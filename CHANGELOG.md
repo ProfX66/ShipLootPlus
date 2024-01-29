@@ -1,3 +1,8 @@
+# v1.0.2
+- Fixed an issue where "Always ON" mode did not function correctly when "Allow Outside" and/or "Allow Inside" was enabled.
+- Fixed an issue where the "On Scan" timeout didn't get reset when scanning again
+- Updated readme with better Rich Text resource links (thanks persondatlovesgames)
+
 # v1.0.1
 > **_IMPORTANT_**: With **v1.0.1** there has been some changes which will reset any custom line formats and colors. You do not need to regenerate your configs and these settings will still be in your config file, its just that the line names and categories have changed (though now you would have extra data in the files).
 

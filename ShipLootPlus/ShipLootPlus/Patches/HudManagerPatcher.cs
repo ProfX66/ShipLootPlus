@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using ShipLootPlus.Utils;
 using UnityEngine.InputSystem;
+using static ShipLootPlus.ShipLootPlus;
 
 namespace ShipLootPlus.Patches
 {
@@ -21,6 +22,7 @@ namespace ShipLootPlus.Patches
 #if DEBUG
             Log.LogWarning("in OnScan");
 #endif
+            UiHelper.timeLeftDisplay = ConfigSettings.DisplayDuration.Value;
             UiHelper.RefreshElementValues();
             UiHelper.TryToggleUi(true);
         }
