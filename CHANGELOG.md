@@ -1,5 +1,5 @@
 # v1.0.2
-- Fixed an issue where "Always ON" mode did not function correctly when "Allow Outside" and/or "Allow Inside" was enabled.
+- Fixed an issue where "Always On" mode did not function correctly when "Allow Outside" and/or "Allow Inside" was disabled.
 - Fixed an issue where the "On Scan" timeout didn't get reset when scanning again
 - Updated readme with better Rich Text resource links (thanks persondatlovesgames)
 
