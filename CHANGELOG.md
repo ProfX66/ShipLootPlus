@@ -1,9 +1,10 @@
 # v1.0.4
 - Fixed an [issue](https://github.com/ProfX66/ShipLootPlus/issues/3) where joining a server as a client mid-round with scrap already on the ship was not calculating correctly for the joined player.
 - Fixed an [issue](https://github.com/ProfX66/ShipLootPlus/issues/4) where spamming the grab button many times a second causing the same issues as the perpetual scan which caused a game crash (buffer overrun).
+- Fixed an issue where selling items at the company would'nt refresh the data on occasion
+- Fixed an issue where moon scrap value/count wasn't updating for all players on level load until the ship had fully landed
 - Fixed patching methods that were some how not actually patching correctly
   - I also deep dived the hooked events and realized that I could remove some after I got these patches to actually apply
-- Fixed an issue where selling items at the company would'nt refresh the data on occasion
 - Changed the refresh method to be rate limited so if an event wants to update the values but the values are already being refreshed it will skip triggering another refresh (this should add performance in the situations where multiple hooked events trigger a data refresh concurrently)
 - Removed a left over ForceMeshUpdate() call which was not needed
 

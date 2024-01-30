@@ -7,16 +7,27 @@ namespace ShipLootPlus.Patches
     internal class RoundManagerPatcher
     {
         /// <summary>
-        /// Refresh data when the level has loaded all objects
+        /// Refresh data when the level has generated its scrap
         /// </summary>
         [HarmonyPostfix]
-        [HarmonyPatch(typeof(RoundManager), nameof(RefreshEnemyVents))]
-        private static void RefreshEnemyVents()
+        [HarmonyPatch(typeof(RoundManager), nameof(SpawnScrapInLevel))]
+        private static void SpawnScrapInLevel(RoundManager __instance)
+        {
+            UiHelper.RefreshElementValues();
+        }
+
+        /// <summary>
+        /// Refresh data when the level has generated its scrap
+        /// </summary>
+        [HarmonyPostfix]
+        [HarmonyPatch(typeof(RoundManager), nameof(SyncScrapValuesClientRpc))]
+        private static void SyncScrapValuesClientRpc()
         {
             if (!UiHelper.IsRefreshing)
             {
                 GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
             }
         }
+        
     }
 }
