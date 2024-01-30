@@ -378,6 +378,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Patches\DepositItemsDeskPatcher.cs" />
+    <Compile Include="Patches\GrabbableObjectPatcher.cs" />
     <Compile Include="Patches\HudManagerPatcher.cs" />
     <Compile Include="Patches\PlayerControllerBPatcher.cs" />
     <Compile Include="Patches\RoundManagerPatcher.cs" />
