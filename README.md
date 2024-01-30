@@ -438,6 +438,8 @@ This is what the HUD looks like with its default data points.
     - [ ] scrap value to meet profit
     - [_**x**_] Company buying percentage
     - [_**x**_] Weather
+    - [ ] Add "InsideLoot" value/count (Loot only inside the dungeon)
+    - [ ] Add "OutsideLoot" value/count (Loot only not inside the dungeon and not in the ship)
     - [ ] Probably more...
   - [_**x**_] Refactor the code to be more dynamic and reliable
   - [_**x**_] Optimize scrap calculation methods for performance

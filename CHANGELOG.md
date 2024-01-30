@@ -1,3 +1,12 @@
+# v1.0.4
+- Fixed an [issue](https://github.com/ProfX66/ShipLootPlus/issues/3) where joining a server as a client mid-round with scrap already on the ship was not calculating correctly for the joined player.
+- Fixed an [issue](https://github.com/ProfX66/ShipLootPlus/issues/4) where spamming the grab button many times a second causing the same issues as the perpetual scan which caused a game crash (buffer overrun).
+- Fixed patching methods that were some how not actually patching correctly
+  - I also deep dived the hooked events and realized that I could remove some after I got these patches to actually apply
+- Fixed an issue where selling items at the company would'nt refresh the data on occasion
+- Changed the refresh method to be rate limited so if an event wants to update the values but the values are already being refreshed it will skip triggering another refresh (this should add performance in the situations where multiple hooked events trigger a data refresh concurrently)
+- Removed a left over ForceMeshUpdate() call which was not needed
+
 # v1.0.3
 - Hopefully fixed a compatibility issue with mods that modify the scanner to be able to perpetually scan (like [Hold Scan Button](https://thunderstore.io/c/lethal-company/p/FutureSavior/Hold_Scan_Button/))
 - Added a new configuration section for "On Scan"
