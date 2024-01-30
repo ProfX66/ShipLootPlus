@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using ShipLootPlus.Utils;
-using System.Threading.Tasks;
 
 namespace ShipLootPlus.Patches
 {
@@ -14,7 +13,10 @@ namespace ShipLootPlus.Patches
         [HarmonyPatch(typeof(TimeOfDay), nameof(UpdateProfitQuotaCurrentTime))]
         private static void UpdateProfitQuotaCurrentTime()
         {
-            UiHelper.RefreshElementValues();
+            if (!UiHelper.IsRefreshing)
+            {
+                GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
+            }
         }
     }
 }

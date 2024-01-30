@@ -20,10 +20,13 @@ namespace ShipLootPlus.Patches
             if (GameNetworkManager.Instance.localPlayerController == null) return;
             if (!context.performed || !__instance.CanPlayerScan() || __instance.playerPingingScan > -0.5f) return;
 #if DEBUG
-            Log.LogWarning("in OnScan");
+            Log.LogWarning($"in OnScan => Refreshing: {UiHelper.IsRefreshing}");
 #endif
             if (ConfigSettings.DisplayDurationReset.Value) UiHelper.timeLeftDisplay = ConfigSettings.DisplayDuration.Value;
-            if (ConfigSettings.RefreshOnScan.Value) UiHelper.RefreshElementValues();
+            if (ConfigSettings.RefreshOnScan.Value && !UiHelper.IsRefreshing)
+            {
+                GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
+            }
             UiHelper.TryToggleUi(true);
         }
 
@@ -57,7 +60,10 @@ namespace ShipLootPlus.Patches
         [HarmonyPostfix]
         private static void DisplayNewScrapFound()
         {
-            UiHelper.RefreshElementValues();
+            if (!UiHelper.IsRefreshing)
+            {
+                GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
+            }
         }
 
         /// <summary>
@@ -67,7 +73,10 @@ namespace ShipLootPlus.Patches
         [HarmonyPostfix]
         private static void DisplayDaysLeft()
         {
-            UiHelper.RefreshElementValues();
+            if (!UiHelper.IsRefreshing)
+            {
+                GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
+            }
         }
     }
 }

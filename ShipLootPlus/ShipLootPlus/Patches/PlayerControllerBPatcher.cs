@@ -1,6 +1,7 @@
 ﻿using GameNetcodeStuff;
 using HarmonyLib;
 using ShipLootPlus.Utils;
+using Unity.Netcode;
 
 namespace ShipLootPlus.Patches
 {
@@ -8,23 +9,18 @@ namespace ShipLootPlus.Patches
     internal class PlayerControllerBPatcher
     {
         /// <summary>
-        /// Refresh data when user grabs an object
+        /// Refresh data when a scrap object being grabbed RPC is recieved
         /// </summary>
-        [HarmonyPatch(typeof(PlayerControllerB), nameof(BeginGrabObject))]
+        /// <param name="__instance"></param>
+        /// <param name="grabbedObject"></param>
+        [HarmonyPatch(typeof(PlayerControllerB), nameof(GrabObjectClientRpc))]
         [HarmonyPostfix]
-        private static void BeginGrabObject()
+        private static void GrabObjectClientRpc(PlayerControllerB __instance, NetworkObjectReference grabbedObject)
         {
-            UiHelper.RefreshElementValues();
-        }
-
-        /// <summary>
-        /// Refresh data when user drops an object
-        /// </summary>
-        [HarmonyPatch(typeof(PlayerControllerB), nameof(DiscardHeldObject))]
-        [HarmonyPostfix]
-        private static void DiscardHeldObject()
-        {
-            UiHelper.RefreshElementValues();
+            if (__instance.currentlyHeldObjectServer.itemProperties.isScrap && !UiHelper.IsRefreshing)
+            {
+                GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
+            }
         }
     }
 }

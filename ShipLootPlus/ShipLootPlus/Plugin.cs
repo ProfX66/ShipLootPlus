@@ -17,7 +17,7 @@ namespace ShipLootPlus
         public const string Author = "PXC";
         public const string Name = "ShipLootPlus";
         public const string Id = "PXC.ShipLootPlus";
-        public const string Version = "1.0.3";
+        public const string Version = "1.0.4";
         public string FullName => string.Format("{0} v{1}", Name, Version);
     }
 
@@ -55,9 +55,30 @@ namespace ShipLootPlus
                 return;
             }
 
-            Harmony.CreateAndPatchAll(Assembly.GetExecutingAssembly(), PluginMetadata.Id);
+            Harmony.CreateAndPatchAll(typeof(DepositItemsDeskPatcher));
+            Log.LogInfo("[Patched] DepositItemsDesk");
 
+            Harmony.CreateAndPatchAll(typeof(GrabbableObjectPatcher));
+            Log.LogInfo("[Patched] GrabbableObjects");
+
+            Harmony.CreateAndPatchAll(typeof(HudManagerPatcher));
+            Log.LogInfo("[Patched] HUDManager");
+
+            Harmony.CreateAndPatchAll(typeof(PlayerControllerBPatcher));
+            Log.LogInfo("[Patched] PlayerControllerB");
+
+            Harmony.CreateAndPatchAll(typeof(RoundManagerPatcher));
+            Log.LogInfo("[Patched] RoundManager");
+
+            Harmony.CreateAndPatchAll(typeof(StartOfRoundPatcher));
+            Log.LogInfo("[Patched] StartOfRound");
+
+            Harmony.CreateAndPatchAll(typeof(TimeOfDayPatcher));
+            Log.LogInfo("[Patched] TimeOfDay");
+
+            UiHelper.ValidatedScrapOnJoin = false;
             UiHelper.DataSubSet = new List<string>();
+
             UiHelper.DataPoints = new List<ReplacementData>
             {
                 new ReplacementData { Pattern = "%ShipLootValue%", Description = "Value of all scrap on ship"},
@@ -105,8 +126,13 @@ namespace ShipLootPlus
             ConfigSettings.ShowLineThree.SettingChanged += RedrawRequired_SettingChanged;
             ConfigSettings.LineThreeColor.SettingChanged += RedrawRequired_SettingChanged;
             ConfigSettings.LineThreeFormat.SettingChanged += RedrawRequired_SettingChanged;
-            
-            Log.LogInfo(string.Format("Loaded!\n{0}", FiggleFonts.Doom.Render(pluginMetadata.FullName)));
+
+#if DEBUG
+            Log.LogWarning($"Loaded! (IN DEBUG)\n{FiggleFonts.Doom.Render(pluginMetadata.FullName)}");
+#endif
+#if !DEBUG
+            Log.LogInfo($"Loaded!\n{FiggleFonts.Doom.Render(pluginMetadata.FullName)}");
+#endif
         }
 
         #endregion

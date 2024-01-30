@@ -25,8 +25,11 @@ namespace ShipLootPlus.Utils
         public static List<ReplacementData> DataPoints { get; set; }
         public static GameObject ContainerObject { get; set; }
         public static float timeLeftDisplay { get; set; }
+        public static float timeLeftUpdate { get; set; }
         public static bool IsUpdating { get; set; }
+        public static bool IsRefreshing { get; set; }
         public static bool IsDisplaying { get; set; }
+        public static bool ValidatedScrapOnJoin { get; set; }
 
         #region Methods
 
@@ -361,25 +364,6 @@ namespace ShipLootPlus.Utils
         }
 
         /// <summary>
-        /// Caclulate available screen space
-        /// </summary>
-        /// <param name="element"></param>
-        /// <returns></returns>
-        public static float CalculateAvailableSpace(RectTransform element)
-        {
-            // Get the screen width
-            float screenWidth = Screen.width;
-
-            // Calculate the position of the UI element's left side in screen space
-            float elementLeft = element.position.x - element.rect.width * element.lossyScale.x / 2;
-
-            // Calculate the available space from the left side of the UI element to the left side of the screen
-            float availableSpace = elementLeft;
-
-            return availableSpace;
-        }
-
-        /// <summary>
         /// Resets all element settings when specific config items are refreshed
         /// </summary>
         public static void ResetUiElements()
@@ -435,7 +419,7 @@ namespace ShipLootPlus.Utils
         }
 
         /// <summary>
-        /// 
+        /// Creates a data subset to limit only refreshing data values which exist in the config
         /// </summary>
         /// <param name="LineItem"></param>
         public static void SetDataSubSet(string LineItem)
@@ -624,7 +608,7 @@ namespace ShipLootPlus.Utils
 #endif
                 string textContent = ReplaceValues(slpi.format, DataPoints.Where(d => DataSubSet.Contains(d.Name)).ToList());
                 slpi.textMeshProUGui.text = textContent;
-                slpi.textMeshProUGui.ForceMeshUpdate();
+                //slpi.textMeshProUGui.ForceMeshUpdate();
                 if (ConfigSettings.AllCaps.Value) { slpi.textMeshProUGui.text = slpi.textMeshProUGui.text.ToUpper(); }
                 IsUpdating = false;
             });
@@ -682,6 +666,43 @@ namespace ShipLootPlus.Utils
             var finalScale = target.transform.localScale;
             finalScale.Scale(scaleFactor);
             target.transform.localScale = finalScale;
+        }
+
+        /// <summary>
+        /// Caclulate available screen space
+        /// </summary>
+        /// <param name="element"></param>
+        /// <returns></returns>
+        public static float CalculateAvailableSpace(RectTransform element)
+        {
+            // Get the screen width
+            float screenWidth = Screen.width;
+
+            // Calculate the position of the UI element's left side in screen space
+            float elementLeft = element.position.x - element.rect.width * element.lossyScale.x / 2;
+
+            // Calculate the available space from the left side of the UI element to the left side of the screen
+            float availableSpace = elementLeft;
+
+            return availableSpace;
+        }
+
+        /// <summary>
+        /// Convert a HTML hex color code to a Color object
+        /// </summary>
+        /// <param name="hColor"></param>
+        /// <param name="alpha"></param>
+        /// <returns>Color</returns>
+        public static Color ConvertHexColor(string hColor, float alpha = 0.95f)
+        {
+            if (!Regex.IsMatch(hColor, "^#")) { hColor = string.Concat("#", hColor); }
+
+            if (ColorUtility.TryParseHtmlString(hColor, out Color elemColor))
+            {
+                return elemColor;
+            }
+
+            return new Color(25, 213, 108);
         }
 
         /// <summary>
@@ -802,21 +823,67 @@ namespace ShipLootPlus.Utils
         }
 
         /// <summary>
-        /// Convert a HTML hex color code to a Color object
+        /// Rate limit updating all data points
         /// </summary>
-        /// <param name="hColor"></param>
-        /// <param name="alpha"></param>
-        /// <returns>Color</returns>
-        public static Color ConvertHexColor(string hColor, float alpha = 0.95f)
+        /// <returns></returns>
+        public static IEnumerator UpdateDatapoints()
         {
-            if (!Regex.IsMatch(hColor, "^#")) { hColor = string.Concat("#", hColor); }
+            if (!IsRefreshing) { IsRefreshing = true; }
+            timeLeftUpdate = 2f;
+#if DEBUG
+            Log.LogWarning($"[UpdateDatapoints:{IsRefreshing}] Callers: {GetStackTraceInfo("Patcher")}");
+            Log.LogInfo($"timeLeftUpdate:  {timeLeftUpdate}");
+#endif
+            UiHelper.RefreshElementValues();
 
-            if (ColorUtility.TryParseHtmlString(hColor, out Color elemColor))
+            while (timeLeftUpdate > 0f)
             {
-                return elemColor;
+#if DEBUG
+                Log.LogInfo($"timeLeftUpdate:> {timeLeftUpdate}");
+#endif
+                float time = timeLeftUpdate;
+                timeLeftUpdate = 0f;
+                yield return new WaitForSeconds(time);
             }
+#if DEBUG
+            Log.LogInfo($"timeLeftUpdate:  {timeLeftUpdate}");
+            Log.LogWarning($"Leaving UpdateDatapoints");
+#endif
+            IsRefreshing = false;
+        }
 
-            return new Color(25, 213, 108);
+        /// <summary>
+        /// Gets the stack trace caller that matches the passed regex pattern
+        /// </summary>
+        /// <param name="targetClassName"></param>
+        /// <returns></returns>
+        static string GetStackTraceInfo(string targetClassName)
+        {
+            StackTrace stackTrace = new StackTrace();
+
+            Regex classRegex = new Regex(targetClassName);
+
+            var matchingFrame = stackTrace.GetFrames()
+                .Skip(1)
+                .FirstOrDefault(frame =>
+                {
+                    MethodBase method = frame.GetMethod();
+                    string className = method.DeclaringType?.Name ?? "UnknownClass";
+                    return classRegex.IsMatch(className);
+                });
+
+            if (matchingFrame != null)
+            {
+                MethodBase method = matchingFrame.GetMethod();
+                string methodName = method.Name;
+                int lineNumber = matchingFrame.GetFileLineNumber();
+                string frameInfo = $"{targetClassName}.{methodName}() in {matchingFrame.GetFileName()}:{lineNumber}";
+                return frameInfo;
+            }
+            else
+            {
+                return $"No matching frame found for class {targetClassName}";
+            }
         }
 
         /// <summary>
@@ -833,26 +900,44 @@ namespace ShipLootPlus.Utils
             {
                 case "Ship":
                     scrapList = Object.FindObjectsOfType<GrabbableObject>().Where(s => s.itemProperties.isScrap
-                                                                                                && s.isInShipRoom
-                                                                                                && s.isInElevator
-                                                                                                && !Ignored.Contains(s.name)).ToList();
+                                                                                    && s.isInShipRoom
+                                                                                    && s.isInElevator
+                                                                                    && !Ignored.Contains(s.name)).ToList();
+
+                    if (scrapList.Count <= 0 && !ValidatedScrapOnJoin)
+                    {
+                        Log.LogWarning("Ship scrap looks to be empty - Getting actual ship items to validate (Likely client joining a session)");
+                        GameObject ship = GameObject.Find("/Environment/HangarShip");
+                        List<GrabbableObject> templist = ship.GetComponentsInChildren<GrabbableObject>().Where(s => s.itemProperties.isScrap
+                                                                                                                 && !Ignored.Contains(s.name)).ToList();
+                        templist.ForEach(s =>
+                        {
+                            s.isInShipRoom = true;
+                            s.isInElevator = true;
+                        });
+                        scrapList = Object.FindObjectsOfType<GrabbableObject>().Where(s => s.itemProperties.isScrap
+                                                                                        && s.isInShipRoom
+                                                                                        && s.isInElevator
+                                                                                        && !Ignored.Contains(s.name)).ToList();
+                        ValidatedScrapOnJoin = true;
+                    }
                     break;
                 case "Moon":
                     if (StartOfRound.Instance.inShipPhase) break;
                     scrapList = Object.FindObjectsOfType<GrabbableObject>().Where(s => s.itemProperties.isScrap
-                                                                                                && !s.isInShipRoom
-                                                                                                && !s.isInElevator
-                                                                                                && !Ignored.Contains(s.name)).ToList();
+                                                                                    && !s.isInShipRoom
+                                                                                    && !s.isInElevator
+                                                                                    && !Ignored.Contains(s.name)).ToList();
                     break;
                 case "All":
                     scrapList = Object.FindObjectsOfType<GrabbableObject>().Where(s => s.itemProperties.isScrap
-                                                                                                && !Ignored.Contains(s.name)).ToList();
+                                                                                    && !Ignored.Contains(s.name)).ToList();
                     break;
                 case "Inv":
                     scrapList = Object.FindObjectsOfType<GrabbableObject>().Where(s => s.itemProperties.isScrap
-                                                                                                && (s.isHeld || s.isPocketed)
-                                                                                                && s.playerHeldBy.IsLocalPlayer
-                                                                                                && !Ignored.Contains(s.name)).ToList();
+                                                                                    && (s.isHeld || s.isPocketed)
+                                                                                    && s.playerHeldBy.IsLocalPlayer
+                                                                                    && !Ignored.Contains(s.name)).ToList();
                     break;
             }
 

@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using ShipLootPlus.Utils;
-using UnityEngine.AI;
 
 namespace ShipLootPlus.Patches
 {
@@ -14,7 +13,10 @@ namespace ShipLootPlus.Patches
         [HarmonyPatch(typeof(StartOfRound), "ReviveDeadPlayers")]
         private static void PlayerHasRevivedServerRpc()
         {
-            UiHelper.RefreshElementValues();
+            if (!UiHelper.IsRefreshing)
+            {
+                GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
+            }
         }
 
         /// <summary>
@@ -24,7 +26,10 @@ namespace ShipLootPlus.Patches
         [HarmonyPatch(typeof(StartOfRound), "EndOfGameClientRpc")]
         private static void RefreshDay()
         {
-            UiHelper.RefreshElementValues();
+            if (!UiHelper.IsRefreshing)
+            {
+                GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
+            }
         }
 
         /// <summary>
@@ -34,7 +39,10 @@ namespace ShipLootPlus.Patches
         [HarmonyPatch(typeof(StartOfRound), nameof(StartGame))]
         private static void StartGame()
         {
-            UiHelper.RefreshElementValues();
+            if (!UiHelper.IsRefreshing)
+            {
+                GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
+            }
         }
 
         /// <summary>
@@ -44,7 +52,10 @@ namespace ShipLootPlus.Patches
         [HarmonyPatch(typeof(StartOfRound), nameof(Start))]
         private static void Start()
         {
-            UiHelper.RefreshElementValues();
+            if (!UiHelper.IsRefreshing)
+            {
+                GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
+            }
         }
 
         /// <summary>
@@ -54,7 +65,10 @@ namespace ShipLootPlus.Patches
         [HarmonyPatch(typeof(StartOfRound), nameof(SetTimeAndPlanetToSavedSettings))]
         private static void SetTimeAndPlanetToSavedSettings()
         {
-            UiHelper.RefreshElementValues();
+            if (!UiHelper.IsRefreshing)
+            {
+                GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
+            }
         }
 
         /// <summary>
@@ -64,7 +78,10 @@ namespace ShipLootPlus.Patches
         [HarmonyPostfix]
         private static void SyncShipUnlockablesClientRpc()
         {
-            UiHelper.RefreshElementValues();
+            if (!UiHelper.IsRefreshing)
+            {
+                GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
+            }
         }
 
         /// <summary>
@@ -75,7 +92,10 @@ namespace ShipLootPlus.Patches
         [HarmonyPostfix]
         private static void ResetShip(StartOfRound __instance)
         {
-            UiHelper.RefreshElementValues();
+            if (!UiHelper.IsRefreshing)
+            {
+                GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
+            }
         }
 
         /// <summary>
@@ -85,7 +105,20 @@ namespace ShipLootPlus.Patches
         [HarmonyPostfix]
         private static void LoadShipGrabbableItems()
         {
-            UiHelper.RefreshElementValues();
+            if (!UiHelper.IsRefreshing)
+            {
+                GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
+            }
+        }
+
+        [HarmonyPatch(typeof(StartOfRound), nameof(AllPlayersHaveRevivedClientRpc))]
+        [HarmonyPostfix]
+        private static void AllPlayersHaveRevivedClientRpc()
+        {
+            if (!UiHelper.IsRefreshing)
+            {
+                GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
+            }
         }
 
         /// <summary>
@@ -95,7 +128,10 @@ namespace ShipLootPlus.Patches
         [HarmonyPostfix]
         private static void SetMapScreenInfoToCurrentLevel()
         {
-            UiHelper.RefreshElementValues();
+            if (!UiHelper.IsRefreshing)
+            {
+                GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
+            }
         }
     }
 }

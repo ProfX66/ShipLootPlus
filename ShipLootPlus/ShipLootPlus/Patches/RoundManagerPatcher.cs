@@ -1,6 +1,5 @@
 ﻿using HarmonyLib;
 using ShipLootPlus.Utils;
-using System.Threading.Tasks;
 
 namespace ShipLootPlus.Patches
 {
@@ -14,7 +13,10 @@ namespace ShipLootPlus.Patches
         [HarmonyPatch(typeof(RoundManager), nameof(RefreshEnemyVents))]
         private static void RefreshEnemyVents()
         {
-            UiHelper.RefreshElementValues();
+            if (!UiHelper.IsRefreshing)
+            {
+                GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
+            }
         }
     }
 }
