@@ -1,3 +1,8 @@
+# v1.0.5
+- Actually fixed joining a server as a client mid-round with scrap already on the ship not calculating correctly for the joined player
+- Fixed scrap values not updating correctly when placing scrap items on the counter at the company
+- Balanced the rate limiting to make it feel better when interacting with scrap
+
 # v1.0.4
 - Fixed an [issue](https://github.com/ProfX66/ShipLootPlus/issues/3) where joining a server as a client mid-round with scrap already on the ship was not calculating correctly for the joined player.
 - Fixed an [issue](https://github.com/ProfX66/ShipLootPlus/issues/4) where spamming the grab button many times a second causing the same issues as the perpetual scan which caused a game crash (buffer overrun).

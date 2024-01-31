@@ -434,12 +434,16 @@ This is what the HUD looks like with its default data points.
     - [_**x**_] Number of days in the ship(save)
     - [_**x**_] Same as above but human friendly format (1st, 3rd, 10th, etc.)
     - [_**x**_] Expected profit (scrap value - quota * buy rate)
-    - [_**x**_] Total Value of scrap in player inventory
-    - [ ] scrap value to meet profit
+    - [ ] Total Value of scrap in player inventory
+    - [ ] Total Value of scrap in crew inventories
+    - [ ] scrap value to meet quota
     - [_**x**_] Company buying percentage
     - [_**x**_] Weather
-    - [ ] Add "InsideLoot" value/count (Loot only inside the dungeon)
-    - [ ] Add "OutsideLoot" value/count (Loot only not inside the dungeon and not in the ship)
+    - [ ] "InsideLoot" value/count (Loot only inside the dungeon)
+    - [ ] "OutsideLoot" value/count (Loot only not inside the dungeon and not in the ship)
+    - [ ] Current time
+    - [ ] Countdown until midnight
+    - [ ] Available money
     - [ ] Probably more...
   - [_**x**_] Refactor the code to be more dynamic and reliable
   - [_**x**_] Optimize scrap calculation methods for performance
@@ -451,6 +455,7 @@ This is what the HUD looks like with its default data points.
     - [ ] Once this is working, remove the original ShipLoot incompatibility (so both could be ran together if desired)
   - [ ] Option to change the HUD elements size/scaling (so it can be resized as well)
   - [ ] Option to customize the color coded deadline colors and thresholds
+  - [ ] Option to change font
   - [_**x**_] Configurable timeout so you can customize how long it shows
   - [_**x**_] Expand the width of the text elements so more data can be shown before it truncates
   - [ ] Expand the amount of lines that can be enabled (from a default of 3, up to 5) with auto scaling
@@ -466,7 +471,8 @@ This is what the HUD looks like with its default data points.
   - Add an additional hud element that allows you to see the exact scrap list and which items you need to make quota (would be disabled by default)
     - Make this new HUD element position configurable
     - Make this new HUD element scale configurable
-  - Add the ability to send data updates to a configurable websocket endpoint via serialized json (would be disabled by default)
+  - ~~Add the ability to send data updates to a configurable websocket endpoint via serialized json (would be disabled by default)~~
+    - This is now handled by another mod [LethalLEDSign](https://thunderstore.io/c/lethal-company/p/ShakePrint/LethalLEDSign/) by ShakePrint
   
 </details>
 
