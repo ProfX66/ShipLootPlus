@@ -17,9 +17,12 @@ namespace ShipLootPlus.Patches
         [HarmonyPostfix]
         private static void GrabObjectClientRpc(PlayerControllerB __instance, NetworkObjectReference grabbedObject)
         {
-            if (__instance.currentlyHeldObjectServer.itemProperties.isScrap && !UiHelper.IsRefreshing)
+            if (__instance != null)
             {
-                GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
+                if (__instance.currentlyHeldObjectServer.itemProperties.isScrap && !UiHelper.IsRefreshing)
+                {
+                    GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
+                }
             }
         }
     }

@@ -29,7 +29,7 @@ namespace ShipLootPlus.Utils
         public static bool IsUpdating { get; set; }
         public static bool IsRefreshing { get; set; }
         public static bool IsDisplaying { get; set; }
-        public static bool ValidatedScrapOnJoin { get; set; }
+        public static bool FirstTimeSync = false;
 
         #region Methods
 
@@ -134,6 +134,7 @@ namespace ShipLootPlus.Utils
                 Log.LogWarning($"[DataSubset-Added] Count: {DataSubSet.Count} => {string.Join(";", DataSubSet)}");
             }
             IsUpdating = false;
+            FirstTimeSync = false;
 
             Vector3 zero = new Vector3(0f, 0f, 0f);
             Vector3 VecLocPos = Vector3.zero;
@@ -221,6 +222,18 @@ namespace ShipLootPlus.Utils
 
             Object.Destroy(textObj.gameObject);
             ResizeAndPositionElements(slp);
+
+            Log.LogWarning("Fixing ship scrap tags on first join...");
+            List <GrabbableObject> scrapList = Object.FindObjectsOfType<GrabbableObject>().Where(s => s.itemProperties.isScrap).ToList();
+            scrapList.ForEach(s =>
+            {
+                bool isInShipRoom = s.isInShipRoom;
+                bool isInElevator = s.isInElevator;
+                s.isInShipRoom = true;
+                s.isInElevator = true;
+                Log.LogInfo($"[{s.name}] isInShipRoom: {isInShipRoom} => {s.isInElevator} | isInElevator: {isInElevator} => {s.isInElevator}");
+            });
+
             RefreshElementValues();
 #if DEBUG
             Log.LogWarning(string.Format("\n{0}", FiggleFonts.Doom.Render("Showing Objects")));
@@ -829,7 +842,7 @@ namespace ShipLootPlus.Utils
         public static IEnumerator UpdateDatapoints()
         {
             if (!IsRefreshing) { IsRefreshing = true; }
-            timeLeftUpdate = 2f;
+            timeLeftUpdate = 0.5f;
 #if DEBUG
             Log.LogWarning($"[UpdateDatapoints:{IsRefreshing}] Callers: {GetStackTraceInfo("Patcher")}");
             Log.LogInfo($"timeLeftUpdate:  {timeLeftUpdate}");
@@ -903,24 +916,6 @@ namespace ShipLootPlus.Utils
                                                                                     && s.isInShipRoom
                                                                                     && s.isInElevator
                                                                                     && !Ignored.Contains(s.name)).ToList();
-
-                    if (scrapList.Count <= 0 && !ValidatedScrapOnJoin)
-                    {
-                        Log.LogWarning("Ship scrap looks to be empty - Getting actual ship items to validate (Likely client joining a session)");
-                        GameObject ship = GameObject.Find("/Environment/HangarShip");
-                        List<GrabbableObject> templist = ship.GetComponentsInChildren<GrabbableObject>().Where(s => s.itemProperties.isScrap
-                                                                                                                 && !Ignored.Contains(s.name)).ToList();
-                        templist.ForEach(s =>
-                        {
-                            s.isInShipRoom = true;
-                            s.isInElevator = true;
-                        });
-                        scrapList = Object.FindObjectsOfType<GrabbableObject>().Where(s => s.itemProperties.isScrap
-                                                                                        && s.isInShipRoom
-                                                                                        && s.isInElevator
-                                                                                        && !Ignored.Contains(s.name)).ToList();
-                        ValidatedScrapOnJoin = true;
-                    }
                     break;
                 case "Moon":
                     if (StartOfRound.Instance.inShipPhase) break;
@@ -944,11 +939,21 @@ namespace ShipLootPlus.Utils
             if (scrapList == null) return new LootItem { Value = 0, Count = 0 };
 #if DEBUG
             Log.LogInfo($"[CalculateLootValue] Valid item count: {scrapList.Count}");
-            Log.LogInfo("Calculating total ship scrap value.");
+            Log.LogInfo($"Calculating total {scope} scrap value.");
             scrapList.Do(s => Log.LogInfo($"{s.name} - ${s.scrapValue}"));
+
+            scrapList.ForEach(s =>
+            {
+                if (s != null) Log.LogInfo($"[CalculateLootValue] {s.name} - ${s.scrapValue}");
+                else Log.LogInfo($"[CalculateLootValue] Item was NULL - Skipping...");
+            });
 #endif
-            Log.LogDebug("Calculating total ship scrap value.");
-            scrapList.Do(s => Log.LogDebug($"{s.name} - ${s.scrapValue}"));
+            Log.LogDebug($"Calculating total {scope} scrap value.");
+            scrapList.ForEach(s =>
+            {
+                if (s != null) Log.LogDebug($"[CalculateLootValue] {s.name} - ${s.scrapValue}");
+                else Log.LogDebug($"[CalculateLootValue] Item was NULL - Skipping...");
+            });
 
             return new LootItem
             {

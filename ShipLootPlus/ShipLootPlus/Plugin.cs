@@ -17,7 +17,7 @@ namespace ShipLootPlus
         public const string Author = "PXC";
         public const string Name = "ShipLootPlus";
         public const string Id = "PXC.ShipLootPlus";
-        public const string Version = "1.0.4";
+        public const string Version = "1.0.5";
         public string FullName => string.Format("{0} v{1}", Name, Version);
     }
 
@@ -76,9 +76,7 @@ namespace ShipLootPlus
             Harmony.CreateAndPatchAll(typeof(TimeOfDayPatcher));
             Log.LogInfo("[Patched] TimeOfDay");
 
-            UiHelper.ValidatedScrapOnJoin = false;
             UiHelper.DataSubSet = new List<string>();
-
             UiHelper.DataPoints = new List<ReplacementData>
             {
                 new ReplacementData { Pattern = "%ShipLootValue%", Description = "Value of all scrap on ship"},
