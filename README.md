@@ -486,7 +486,7 @@ This is what the HUD looks like with its default data points.
 The following are mods either tested to be compatible or not
 
 ### Incompatible
-- [ShipLoot](https://thunderstore.io/c/lethal-company/p/tinyhoot/ShipLoot/): Since this is basically a full rewrite of ShipLoot, it is not compatible with it. This mod will disable itself with a warning in the console stating as such if its found.
+- [ShipLoot](https://thunderstore.io/c/lethal-company/p/tinyhoot/ShipLoot/): Since this is basically a full rewrite of ShipLoot, it is not compatible with it. This mod will disable the original ShipLoot if it is found.
 - Likely other mods that add similar HUD elements (at least until I add the custom position and scaling features)
 
 ### Compatible (Tested by me or the community)

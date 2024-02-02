@@ -1,3 +1,7 @@
+# v1.0.6
+- Fixed a compatibility [issue](https://github.com/ProfX66/ShipLootPlus/issues/5) with [MelonLoader](https://thunderstore.io/c/lethal-company/p/BepInEx/BepInEx_MLLoader) where it would throw an error causing ShipLootPlus to not load correctly
+- Changed how the original ShipLoot is handled if its found, ShipLootPlus will now disable the original if its found
+
 # v1.0.5
 - Actually fixed joining a server as a client mid-round with scrap already on the ship not calculating correctly for the joined player
 - Fixed scrap values not updating correctly when placing scrap items on the counter at the company

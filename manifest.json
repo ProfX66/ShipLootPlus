@@ -1,6 +1,6 @@
 {
     "name": "ShipLootPlus",
-    "version_number": "1.0.5",
+    "version_number": "1.0.6",
     "website_url": "http://pxcnet.com/LC",
     "description": "Rewrite of the OG ShipLoot and enhanced with more customization",
     "dependencies": [
