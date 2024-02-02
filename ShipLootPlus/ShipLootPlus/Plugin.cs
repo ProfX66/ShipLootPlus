@@ -9,6 +9,8 @@ using System;
 using System.IO;
 using ShipLootPlus.Patches;
 using System.Text.RegularExpressions;
+using System.Linq;
+using BepInEx.Bootstrap;
 
 namespace ShipLootPlus
 {
@@ -17,7 +19,7 @@ namespace ShipLootPlus
         public const string Author = "PXC";
         public const string Name = "ShipLootPlus";
         public const string Id = "PXC.ShipLootPlus";
-        public const string Version = "1.0.5";
+        public const string Version = "1.0.6";
         public string FullName => string.Format("{0} v{1}", Name, Version);
     }
 
@@ -39,21 +41,7 @@ namespace ShipLootPlus
         {
             if (Instance == null) { Instance = this; }
             Log = Logger;
-            Log.LogInfo(string.Format("Initializing plugin: {0} by {1}", pluginMetadata.FullName, PluginMetadata.Author));
-
-            if (AssemblyExists("ShipLoot"))
-            {
-                Log.LogInfo("");
-                Log.LogInfo("");
-                Log.LogError(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-                Log.LogError($"Original ShipLoot has been detected - Disabing {pluginMetadata.FullName}...");
-                Log.LogWarning($"If you want to use {pluginMetadata.FullName} please disable the original ShipLoot!");
-                Log.LogError("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
-                Log.LogInfo("");
-                Log.LogInfo("");
-                Log.LogInfo(string.Format("Unloaded plugin: {0} by {1}", pluginMetadata.FullName, PluginMetadata.Author));
-                return;
-            }
+            Log.LogInfo($"Initializing plugin: {pluginMetadata.FullName} by {PluginMetadata.Author}");
 
             Harmony.CreateAndPatchAll(typeof(DepositItemsDeskPatcher));
             Log.LogInfo("[Patched] DepositItemsDesk");
@@ -175,22 +163,22 @@ namespace ShipLootPlus
         #region Helpers
 
         /// <summary>
-        /// Tests if an assembly is available or not
+        /// Tests if a plugin is available or not
         /// </summary>
         /// <param name="Name"></param>
         /// <returns>bool</returns>
-        public static bool AssemblyExists(string Name)
+        public static bool PluginExists(string Name, bool ShowWarning = true)
         {
-            try
+            if (Chainloader.PluginInfos.ContainsKey(Name))
             {
-                Assembly assembly = AppDomain.CurrentDomain.Load(Name);
-                Log.LogInfo($"Found {Name}: {assembly}");
+                KeyValuePair<string, PluginInfo> plugin = Chainloader.PluginInfos.FirstOrDefault(n => n.Key == Name);
+                
+                if (ShowWarning) Log.LogInfo($"[SoftDependency] Found plugin: {plugin.Value.Metadata.Name} ({plugin.Value.Metadata.GUID}) v{plugin.Value.Metadata.Version} - Initializing methods...");
                 return true;
             }
-            catch (FileNotFoundException)
-            {
-                return false;
-            }
+
+            if (ShowWarning) Log.LogWarning($"[SoftDependency] Unable to find plugin '{Name}' - Skipping its initialization!");
+            return false;
         }
 
         #endregion

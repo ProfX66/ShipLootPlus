@@ -93,9 +93,9 @@ namespace ShipLootPlus.Utils
 
             try
             {
-                if (AssemblyExists("LethalConfig")) SetupLethalConfig(description);
+                if (PluginExists("ainavt.lc.lethalconfig")) SetupLethalConfig(description);
             }
-            catch { Log.LogWarning("LethalSettings was not found - Skipping its initialization..."); }
+            catch { }
         }
 
         /// <summary>
