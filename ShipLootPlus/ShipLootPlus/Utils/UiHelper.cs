@@ -19,7 +19,7 @@ namespace ShipLootPlus.Utils
 {
     internal class UiHelper
     {
-        private static List<string> ItemsToIgnore => new List<string> { "ClipboardManual", "StickyNoteItem" };
+        private static List<string> ItemsToIgnore => new List<string> { "ClipboardManual", "StickyNoteItem", "PlayerRagdoll", "RagdollGrabbableObject" };
         public static List<string> DataSubSet { get; set; }
         public static List<ShipLootPlusItem> UiElementList { get; set; }
         public static List<ReplacementData> DataPoints { get; set; }
@@ -816,7 +816,13 @@ namespace ShipLootPlus.Utils
             Log.LogWarning($"Showing [ ContainerObject ] object...");
             Log.LogInfo($"timeLeftDisplay:  {timeLeftDisplay} - {ConfigSettings.DisplayDuration.Value}");
 #endif
-            ContainerObject.SetActive(true);
+            bool hadError = false;
+            try { ContainerObject.SetActive(true); }
+            catch
+            {
+                Log.LogWarning("Unable to show UI - Likely because we are not in a lobby anymore => Resetting states...");
+                hadError = true;
+            }
 
             while (timeLeftDisplay > 0f)
             {
@@ -831,7 +837,15 @@ namespace ShipLootPlus.Utils
             Log.LogWarning($"Hiding [ ContainerObject ] object...");
             Log.LogInfo($"timeLeftDisplay:  {timeLeftDisplay} - {ConfigSettings.DisplayDuration.Value}");
 #endif
-            ContainerObject.SetActive(false);
+            if (!hadError)
+            {
+                try { ContainerObject.SetActive(false); }
+                catch
+                {
+                    Log.LogWarning("Unable to hide UI - Likely because we are not in a lobby anymore => Resetting states...");
+                }
+            }
+
             IsDisplaying = false;
         }
 
@@ -847,7 +861,7 @@ namespace ShipLootPlus.Utils
             Log.LogWarning($"[UpdateDatapoints:{IsRefreshing}] Callers: {GetStackTraceInfo("Patcher")}");
             Log.LogInfo($"timeLeftUpdate:  {timeLeftUpdate}");
 #endif
-            UiHelper.RefreshElementValues();
+            RefreshElementValues();
 
             while (timeLeftUpdate > 0f)
             {
@@ -915,24 +929,24 @@ namespace ShipLootPlus.Utils
                     scrapList = Object.FindObjectsOfType<GrabbableObject>().Where(s => s.itemProperties.isScrap
                                                                                     && s.isInShipRoom
                                                                                     && s.isInElevator
-                                                                                    && !Ignored.Contains(s.name)).ToList();
+                                                                                    && !IsIgnored(Ignored, s.name)).ToList();
                     break;
                 case "Moon":
                     if (StartOfRound.Instance.inShipPhase) break;
                     scrapList = Object.FindObjectsOfType<GrabbableObject>().Where(s => s.itemProperties.isScrap
                                                                                     && !s.isInShipRoom
                                                                                     && !s.isInElevator
-                                                                                    && !Ignored.Contains(s.name)).ToList();
+                                                                                    && !IsIgnored(Ignored, s.name)).ToList();
                     break;
                 case "All":
                     scrapList = Object.FindObjectsOfType<GrabbableObject>().Where(s => s.itemProperties.isScrap
-                                                                                    && !Ignored.Contains(s.name)).ToList();
+                                                                                    && !IsIgnored(Ignored, s.name)).ToList();
                     break;
                 case "Inv":
                     scrapList = Object.FindObjectsOfType<GrabbableObject>().Where(s => s.itemProperties.isScrap
                                                                                     && (s.isHeld || s.isPocketed)
                                                                                     && s.playerHeldBy.IsLocalPlayer
-                                                                                    && !Ignored.Contains(s.name)).ToList();
+                                                                                    && !IsIgnored(Ignored, s.name)).ToList();
                     break;
             }
 
@@ -960,6 +974,31 @@ namespace ShipLootPlus.Utils
                 Value = scrapList.Sum(s => s.scrapValue),
                 Count = scrapList.Count
             };
+        }
+
+        /// <summary>
+        /// Check if the passed item exists in the passed list using regex
+        /// </summary>
+        /// <param name="Ignored"></param>
+        /// <param name="Item"></param>
+        /// <returns></returns>
+        public static bool IsIgnored(List<string> Ignored, string Item)
+        {
+#if DEBUG
+            Log.LogInfo($"Testing [{Item}] against [{string.Join("; ", Ignored)}]");
+#endif
+            string list = Ignored.FirstOrDefault(i => Regex.IsMatch(Item, i, RegexOptions.IgnoreCase));
+            if (list != null)
+            {
+#if DEBUG
+                Log.LogInfo($"FOUND: {Item} - Ignoring...");
+#endif
+                return true;
+            }
+#if DEBUG
+            Log.LogInfo($"NO FIND: {Item} - Adding...");
+#endif
+            return false;
         }
 
         /// <summary>
