@@ -1,3 +1,7 @@
+# v1.0.7
+- Fixed an [issue](https://github.com/ProfX66/ShipLootPlus/issues/6) where a players dead body counted in the scrap calculation, they are now ignored.
+- Fixed a rare error when leaving a lobby after having just scanned causing the mod to stop working until a game restart
+
 # v1.0.6
 - Fixed a compatibility [issue](https://github.com/ProfX66/ShipLootPlus/issues/5) with [MelonLoader](https://thunderstore.io/c/lethal-company/p/BepInEx/BepInEx_MLLoader) where it would throw an error causing ShipLootPlus to not load correctly
 - Changed how the original ShipLoot is handled if its found, ShipLootPlus will now disable the original if its found
