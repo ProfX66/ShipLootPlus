@@ -1,3 +1,49 @@
+# v1.0.8
+- Changed most of the UI element code to be better aligned and scaled
+  - Also modified the character and word spacing to be nicer
+  - I also changed which HUD element my UI elements are parented to - It is now higher in the object hierarchy and directly under the "IngamePlayerHUD" object.
+- Added layout config options - You can now set the following:
+  - Change the X (Left/Right) position and Scaling
+  - Change the Y (Up/Down) position and Scaling
+  - Change the Z (Tilt) rotation
+  - Change the text field width offset (allows it to show more or less text before truncating)
+- Added font config options - You can now set the following:
+  - Moved All Caps from the General section into this section
+  - Change the font - I have added a font bundle for the 3 current versions of the "3270Fonts" font that the game uses (bundle includes embedded license and I added the license to my mod package)
+    - Vanilla = Normal game font
+    - Fixed = Currently available version of the font (fixes the dollar sign and other special characters)
+    - Fixed-Semi-Condensed = Same as *Fixed* but slightly more condensed
+    - Fixed-Condensed = Same as *Fixed* but more condensed
+  - Change the font size - **_IMPORTANT_**: I must stress that changing the font size could cause the layout spacing to have unwanted outcomes
+  - Change the character spacing
+  - Change the word spacing
+  - Change the text element alignments - **_IMPORTANT_**: I must stress that changing this will **DEFINITELY** have unwanted outcomes to the layout
+  - Change the text transparency (alpha)
+- Changed how short data points are handled
+  - You can now make any data point short by adding a ":#" inside the percent signs (e.g. ```%Weather:4%```)
+  - Renamed ```%MoonLongName%``` to ```%MoonName%```
+  - Removed the ```Short Character Count``` config setting
+  - Removed the ```%MoonShortName%``` and the ```%WeatherShort%``` data points
+- Changed how the Deadline color coding works
+  - There is now a whole section for the Deadline data point
+  - You can enable/disable the color coding
+  - You can enable/disable replacing zero with a custom string (Default: ```<b>NOW!</b>```)
+  - Set the color for each threshold (2+ days left, 1 day left, 0 days left)
+  - Removed the ```%DeadlineWithColors%``` data point
+- Added a config section for the MoonName data point
+  - You can enable/disable showing the full moon name (e.g. ```21 Offense``` vs ```Offense```)
+  - You can enable/disable replacing the company moons name with a custom string (Default: ```Company Building```)
+- Added a clear/none weather custom text string configuration - Make it blank to keep it as None (Default: ```Clear```)
+- Added color coding with customization for the Weather data point
+  - You can enable/disable color coding for the ```%Weather%``` data point
+  - You can set a custom color for each type of weather
+- Added a configuration converter so that old settings get migrated to new settings
+  - This includes automatically converting any short data point that was used before to the new format using the old short character count value
+  - This should also clean up the config file so there are no orphaned config entries
+- Since the layout changes made the scaling better and more concise I have changed the following default Line formats:
+  - Line #1: ```Ship: $%ShipLootValue%(%ShipLootCount%) / $%MoonLootValue%(%MoonLootCount%) <i>[%MoonName%:%Weather%]</i>```
+  - Line #2: ```Quota: $%FulfilledValue% / $%QuotaValue% - Profit: $%ExpectedProfit%(%CompanyRate%%)```
+
 # v1.0.7
 - Fixed an [issue](https://github.com/ProfX66/ShipLootPlus/issues/6) where a players dead body counted in the scrap calculation, they are now ignored.
 - Fixed a rare error when leaving a lobby after having just scanned causing the mod to stop working until a game restart
