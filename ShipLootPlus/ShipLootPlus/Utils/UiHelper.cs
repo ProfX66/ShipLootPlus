@@ -606,6 +606,19 @@ namespace ShipLootPlus.Utils
                 currentWeather = ConfigSettings.WeatherNoneReplacement.Value;
             }
 
+#if DEBUG
+            Log.LogWarning("========================================");
+            foreach (var item in Enum.GetValues(typeof(LevelWeatherType)))
+            {
+                Log.LogInfo($"[Weather] {item}");
+            }
+
+            Log.LogMessage($"Current String: {currentWeather}");
+            Log.LogMessage($"Current Enum  : {currentWeatherEnum}");
+            Log.LogMessage($"Current Type  : {currentWeatherEnum.GetType()}");
+            Log.LogWarning("========================================");
+#endif
+
             string weatherColorCode = "#ffffffff";
             if (ConfigSettings.WeatherUseColors.Value)
             {
@@ -632,6 +645,12 @@ namespace ShipLootPlus.Utils
                     case LevelWeatherType.Stormy:
                         weatherColorCode = SanitizeHexColorString(ConfigSettings.WeatherColorStormy.Value, "ff");
                         break;
+                }
+
+                //Custom weather types
+                if (Regex.IsMatch(currentWeather, @"^Hell$", RegexOptions.IgnoreCase))
+                {
+                    weatherColorCode = SanitizeHexColorString(ConfigSettings.WeatherColorHell.Value, "ff");
                 }
 
                 currentWeather = string.Format(ColorPattern, weatherColorCode, currentWeather);

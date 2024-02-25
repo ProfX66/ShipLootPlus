@@ -396,7 +396,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>if %25COMPUTERNAME%25 == PXDESK (
-PowerShell -ExecutionPolicy Bypass -Command "&amp; { ""$(TargetDir)"" | Copy-PostBuild -Bins """ShipLootPlus.dll""", """Figgle.dll""" -Destination """D:\Thunderstore\LethalCompany\profiles\ModDev\BepInEx\plugins\PXC-ShipLootPlus""" }"
+PowerShell -ExecutionPolicy Bypass -Command "&amp; { ""$(TargetDir)"" | Copy-PostBuild -Bins """ShipLootPlus.dll""", """Figgle.dll""" -Destination """L:\Repos\ShipLootPlus\.ModPackage\BepInEx\plugins""", """D:\Thunderstore\LethalCompany\profiles\ModDev\BepInEx\plugins\PXC-ShipLootPlus""" }"
 ) else (
 echo Skipping due to machine name not being Prof's
 )</PostBuildEvent>

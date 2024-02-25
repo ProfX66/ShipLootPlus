@@ -74,6 +74,7 @@ namespace ShipLootPlus.Utils
         public static ConfigEntry<string> WeatherColorNone;
         public static ConfigEntry<string> WeatherColorRainy;
         public static ConfigEntry<string> WeatherColorStormy;
+        public static ConfigEntry<string> WeatherColorHell;
 
         /// <summary>
         /// Create BepInEx config items
@@ -113,11 +114,11 @@ namespace ShipLootPlus.Utils
             RefreshOnScan = config.Bind<bool>(category, "Refresh Data On Scan", false, "Should a data refresh be forced when scanning?\n\nAll data is kept updated when events are triggered (player grabs an item, items get moved into the ship, etc.) so this isn't required.\n\n<b>IMPORTANT</B>: This could cause issues with any mod that makes the scanner always on");
 
             category = "Layout";
-            PosX = config.Bind<float>(category, "Position: X (Left/Right)", 115f, "The X postion of the UI element group");
-            PosY = config.Bind<float>(category, "Position: Y (Up/Down)", -169f, "The Y postion of the UI element group");
+            PosX = config.Bind<float>(category, "Position: X (Left/Right)", 115f, "The X position of the UI element group");
+            PosY = config.Bind<float>(category, "Position: Y (Up/Down)", -169f, "The Y position of the UI element group");
             ScaleX = config.Bind<float>(category, "Scale: X (Left/Right)", 0.6f, "The X scale of the UI element group");
             ScaleY = config.Bind<float>(category, "Scale: Y (Up/Down)", 0.6f, "The Y scale of the UI element group");
-            Rotation = config.Bind<float>(category, "Rotation: Z (Tilt)", 356f, "This changes how much the UI element group is roatated on the screen");
+            Rotation = config.Bind<float>(category, "Rotation: Z (Tilt)", 356f, "This changes how much the UI element group is rotated on the screen");
             WidthAppend = config.Bind<float>(category, "Text Field Width Offset", 0f, "This value allows you to offset the text field width if you want to show more or less characters on screen");
 
             category = "Line Graphic";
@@ -171,9 +172,10 @@ namespace ShipLootPlus.Utils
             WeatherColorStormy = config.Bind<string>(category, "Color: Stormy", "FF7700", "Color for Stormy weather");
             WeatherColorFoggy = config.Bind<string>(category, "Color: Foggy", "666666", "Color for Foggy weather");
             WeatherColorFlooded = config.Bind<string>(category, "Color: Flooded", "FF0000", "Color for Flooded weather");
-            WeatherColorEclipsed = config.Bind<string>(category, "Color: Eclipsed", "AA0000", "Color for Eclipsed weather");
+            WeatherColorEclipsed = config.Bind<string>(category, "Color: Eclipsed", "BA0B0B", "Color for Eclipsed weather");
+            WeatherColorHell = config.Bind<string>(category, "Color: Hell", "AA0000", "Color for Hell weather (from the mod 'HellWeather')");
 
-            // Config conversions
+            // Config conversions #ba0b0b
             int oldShort = 3;
             bool doSave = false;
             PropertyInfo orphanedEntriesProp = config.GetType().GetProperty("OrphanedEntries", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -319,6 +321,11 @@ namespace ShipLootPlus.Utils
             LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(AllowOutside, false));
             LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(AllowInside, false));
 
+            //On Scan
+            LethalConfigManager.AddConfigItem(new FloatSliderConfigItem(DisplayDuration, new FloatSliderOptions { Min = 1f, Max = 60f, RequiresRestart = false }));
+            LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(DisplayDurationReset, false));
+            LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(RefreshOnScan, false));
+
             //Layout
             LethalConfigManager.AddConfigItem(new FloatSliderConfigItem(PosX, new FloatSliderOptions { Min = -469f, Max = 333f, RequiresRestart = false }));
             LethalConfigManager.AddConfigItem(new FloatSliderConfigItem(PosY, new FloatSliderOptions { Min = -280f, Max = 190f, RequiresRestart = false }));
@@ -326,11 +333,6 @@ namespace ShipLootPlus.Utils
             LethalConfigManager.AddConfigItem(new FloatSliderConfigItem(ScaleY, new FloatSliderOptions { Min = 0.3f, Max = 1.2f, RequiresRestart = false }));
             LethalConfigManager.AddConfigItem(new FloatSliderConfigItem(Rotation, new FloatSliderOptions { Min = 0f, Max = 360f, RequiresRestart = false }));
             LethalConfigManager.AddConfigItem(new FloatSliderConfigItem(WidthAppend, new FloatSliderOptions { Min = -300f, Max = 2000f, RequiresRestart = false }));
-
-            //On Scan
-            LethalConfigManager.AddConfigItem(new FloatSliderConfigItem(DisplayDuration, new FloatSliderOptions { Min = 1f, Max = 60f, RequiresRestart = false }));
-            LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(DisplayDurationReset, false));
-            LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(RefreshOnScan, false));
 
             //Line Graphic
             LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(ShowLine, false));
@@ -384,6 +386,7 @@ namespace ShipLootPlus.Utils
             LethalConfigManager.AddConfigItem(new TextInputFieldConfigItem(WeatherColorFoggy, false));
             LethalConfigManager.AddConfigItem(new TextInputFieldConfigItem(WeatherColorFlooded, false));
             LethalConfigManager.AddConfigItem(new TextInputFieldConfigItem(WeatherColorEclipsed, false));
+            LethalConfigManager.AddConfigItem(new TextInputFieldConfigItem(WeatherColorHell, false));
         }
 
         #region Future

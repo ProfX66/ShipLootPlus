@@ -146,6 +146,7 @@ namespace ShipLootPlus
             ConfigSettings.WeatherColorFoggy.SettingChanged += RefreshUi_SettingChanged;
             ConfigSettings.WeatherColorFlooded.SettingChanged += RefreshUi_SettingChanged;
             ConfigSettings.WeatherColorEclipsed.SettingChanged += RefreshUi_SettingChanged;
+            ConfigSettings.WeatherColorHell.SettingChanged += RefreshUi_SettingChanged;
 #if DEBUG
             Log.LogWarning($"Loaded! (IN DEBUG)\n{FiggleFonts.Doom.Render(pluginMetadata.FullName)}");
 #endif
