@@ -14,6 +14,7 @@
     - Fixed = Currently available version of the font (fixes the dollar sign and other special characters)
     - Fixed-Semi-Condensed = Same as *Fixed* but slightly more condensed
     - Fixed-Condensed = Same as *Fixed* but more condensed
+    > **Note:** If you are a mod developer and want to use this font asset bundle, please read the **"Font Asset Bundle Information"** section in the readme
   - Change the font size - **_IMPORTANT_**: I must stress that changing the font size could cause the layout spacing to have unwanted outcomes
   - Change the character spacing
   - Change the word spacing
@@ -36,6 +37,7 @@
 - Added a clear/none weather custom text string configuration - Make it blank to keep it as None (Default: ```Clear```)
 - Added color coding with customization for the Weather data point
   - You can enable/disable color coding for the ```%Weather%``` data point
+    - Support was added for the [HellWeather](https://thunderstore.io/c/lethal-company/p/stormytuna/HellWeather/) mod so its 'Hell' weather variant can have its own color
   - You can set a custom color for each type of weather
 - Added a configuration converter so that old settings get migrated to new settings
   - This includes automatically converting any short data point that was used before to the new format using the old short character count value

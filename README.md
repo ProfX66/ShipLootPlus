@@ -10,6 +10,7 @@ This mod adds three customizable HUD elements which allow you to display many di
 
 - Show more game information easily
 - Highly customizable
+  - Font and Display Layout
   - Colors (including Rich Text support)
   - Information format
 - Conditional display
@@ -41,31 +42,34 @@ This is what the HUD looks like with its default data points.
     %CompanyRate%        = Current company buy rate
     %ExpectedProfit%     = Expected profit from scap on ship at current company buy rate
     %Deadline%           = Days until quota is due
-    %DeadlineWithColors% = Quota deadline in days but changes colors based on value (color thresholds will be customizable in the future)
     %DayNumber%          = Integer of days in the ship/save (E.g. 1, 3 ,10)
     %DayNumberHuman%     = Human friendly days in the ship/save (E.g. 1st, 3rd, 10th)
     %Weather%            = Current moons weather full name
-    %WeatherShort%       = Current moons weather short name (Default is first 3 characters)
     %MoonLongName%       = Current moons full name
-    %MoonShortName%      = Current moons short name (Default is first 3 characters)
   ```
 
   ### Example Breakdown
   Default Lines:
 
   ```
-  Ship: $%ShipLootValue%(%ShipLootCount%)/$%MoonLootValue%(%MoonLootCount%) [%MoonShortName%:%Weather%]
-  Quota: $%FulfilledValue%/$%QuotaValue% - Prof: $%ExpectedProfit%(%CompanyRate%%)
+  Ship: $%ShipLootValue%(%ShipLootCount%) / $%MoonLootValue%(%MoonLootCount%) <i>[%MoonName%:%Weather%]</i>
+  Quota: $%FulfilledValue% / $%QuotaValue% - Profit: $%ExpectedProfit%(%CompanyRate%%)
   Deadline: %Deadline% - %DayNumberHuman% day
   ```
 
   Translated Lines:
 
   ```
-  Ship: $209(2)/$0(0) [Com:Clear]
-  Quota: $0/$229 - Prof: $63(30%)
+  Ship: $209(2) / $0(0) [Offense:Clear]
+  Quota: $0 / $229 - Profit: $63(30%)
   Deadline: 3 - 5th day
   ```
+
+  ### DataPoint Shortening
+  Each data point can be shortened so that it shows a truncated version of the data. All you have to do is add a ':' and a number and it will truncate that value to the number provided
+
+  - ```%MoonName:3%``` becomes ```Off```
+  - ```%MoonName:5%``` becomes ```Offen```
 
   ### Rich Text Support
   You can introduce further customizations inline with your formats.
@@ -78,11 +82,190 @@ This is what the HUD looks like with its default data points.
 
   ![](https://github.com/ProfX66/ShipLootPlus/blob/main/Assets/SLP-DefaultLayout-Color-RichText.png?raw=true)
 
-  The ```%DeadlineWithColors%``` DataPoint uses this internally to change the color of the deadline day number from Green (2+ days) => Orange (1 day) => Red (0 days)
+  ### Specific DataPoint settings
+  Some data points have specific settings tied to them
+
+  <details>
+    <summary>Deadline</summary>
+
+  Customizing how the ```%Deadline%``` data point is displayed
+  
+  ### Zero Replacement
+  By default when the deadline reaches zero, it is replaced with "**NOW!**", this can be disabled or the word can be changed in the config
+
+  ### Color Coding
+  You can enable/disable color coding directly for this data point in the config, it is disabled by default.
+
+  The color is set using the following thresholds:
+  - 2+ Days left
+  - 1 Day left
+  - 0 Days left
+
+  Each color can be customized in the config
 
   ![](https://github.com/ProfX66/ShipLootPlus/blob/main/Assets/SLP-DefaultLayout-ColorDeadline-2Plus.png?raw=true)
   ![](https://github.com/ProfX66/ShipLootPlus/blob/main/Assets/SLP-DefaultLayout-ColorDeadline-1.png?raw=true)
   ![](https://github.com/ProfX66/ShipLootPlus/blob/main/Assets/SLP-DefaultLayout-ColorDeadline-0.png?raw=true)
+
+  ### Configuration
+
+  ```cfg
+    [DataPoint: Deadline]
+
+    ## Enables color for the deadline number
+    # Setting type: Boolean
+    # Default value: false
+    Use Colors = false
+
+    ## Replace the number 0 with the custom text below, otherwise leave it as a number
+    # Setting type: Boolean
+    # Default value: true
+    Replace Zero = true
+
+    ## Text to replace the number Zero if 'Replace Zero' is enabled
+    # Setting type: String
+    # Default value: <b>NOW!</b>
+    Zero Replacement = <b>NOW!</b>
+
+    ## Color for when the deadline has two or more days remaining
+    # Setting type: String
+    # Default value: 00FF00
+    Color: 2+ days = 00FF00
+
+    ## Color for when the deadline has one day remaining
+    # Setting type: String
+    # Default value: FFA500
+    Color: 1 day = FFA500
+
+    ## Color for when the deadline is due
+    # Setting type: String
+    # Default value: FF0000
+    Color: Zero days = FF0000
+  ```
+
+  ---
+
+  </details>
+
+  <details>
+    <summary>Weather</summary>
+
+  Customizing how the ```%Weather%``` data point is displayed
+
+  ### None/Clear Weather Text
+  By default when there is no weather, instead of showing "None" its changed to "Clear". This can be changed in the config or set to nothing/blank to show "None"
+
+  ### Color Coding
+  You can enable/disable color coding directly for this data point in the config, it is disabled by default.
+
+  It will change the color of the weather based on what weather it is, the colors can be customized in the config
+
+  ![](https://github.com/ProfX66/ShipLootPlus/blob/main/Assets/SLP-Weather-Clear.png?raw=true)
+  ![](https://github.com/ProfX66/ShipLootPlus/blob/main/Assets/SLP-Weather-Foggy.png?raw=true)
+  ![](https://github.com/ProfX66/ShipLootPlus/blob/main/Assets/SLP-Weather-DustClouds.png?raw=true)
+  ![](https://github.com/ProfX66/ShipLootPlus/blob/main/Assets/SLP-Weather-Rainy.png?raw=true)
+  ![](https://github.com/ProfX66/ShipLootPlus/blob/main/Assets/SLP-Weather-Stormy.png?raw=true)
+  ![](https://github.com/ProfX66/ShipLootPlus/blob/main/Assets/SLP-Weather-Flooded.png?raw=true)
+  ![](https://github.com/ProfX66/ShipLootPlus/blob/main/Assets/SLP-Weather-Eclipsed.png?raw=true)
+  ![](https://github.com/ProfX66/ShipLootPlus/blob/main/Assets/SLP-Weather-Hell.png?raw=true)
+  > **NOTE**: The "Hell" weather type is added by the [HellWeather](https://thunderstore.io/c/lethal-company/p/stormytuna/HellWeather/) mod
+
+  ### Configuration
+
+  ```cfg
+    [DataPoint: Weather]
+
+    ## Text to use instead of 'None' for when the weather is clear (set to blank if you want it to show None)
+    # Setting type: String
+    # Default value: Clear
+    Clear Weather Text = Clear
+
+    ## Enables color for each weather type
+    # Setting type: Boolean
+    # Default value: false
+    Use Colors = false
+
+    ## Color for Clear/None weather
+    # Setting type: String
+    # Default value: 69FF6B
+    Color: Clear/None = 69FF6B
+
+    ## Color for DustClouds weather
+    # Setting type: String
+    # Default value: B56C4C
+    Color: DustClouds = B56C4C
+
+    ## Color for Rainy weather
+    # Setting type: String
+    # Default value: FFFF00
+    Color: Rainy = FFFF00
+
+    ## Color for Stormy weather
+    # Setting type: String
+    # Default value: FF7700
+    Color: Stormy = FF7700
+
+    ## Color for Foggy weather
+    # Setting type: String
+    # Default value: 666666
+    Color: Foggy = 666666
+
+    ## Color for Flooded weather
+    # Setting type: String
+    # Default value: FF0000
+    Color: Flooded = FF0000
+
+    ## Color for Eclipsed weather
+    # Setting type: String
+    # Default value: BA0B0B
+    Color: Eclipsed = BA0B0B
+
+    ## Color for Hell weather (from the mod 'HellWeather')
+    # Setting type: String
+    # Default value: AA0000
+    Color: Hell = AA0000
+  ```
+
+  ---
+
+  </details>
+
+  <details>
+    <summary>MoonName</summary>
+
+  You can customize some of the ways the moon name is displayed
+
+  ### Show the full moon name
+  By default the leading numbers are removed from the moon name ```21 Offense``` becomes ```Offense```, you can disable this to show the full moon name in the config
+
+  ### Replace Company Moon Name
+  By default when you navigate/land at the company building, the moon name (Gordion) is replaced with "Company Building", you can disable this or customize what it replaces it with in the config
+
+  ### Configuration
+
+  ```cfg
+    [DataPoint: MoonName]
+
+    ## Show the full moon name (do not remove any leading numbers)
+    # Setting type: Boolean
+    # Default value: false
+    Show Full Name = false
+
+    ## Replace the name used for the company moon
+    # Setting type: Boolean
+    # Default value: true
+    Replace Company Name = true
+
+    ## Text to replace 'Gordion' if 'Replace Company Name' is enabled
+    # Setting type: String
+    # Default value: Company Building
+    Company Name Replacement = Company Building
+
+  ```
+
+  ---
+
+  </details>
 
   ### Configuration
 
@@ -94,22 +277,22 @@ This is what the HUD looks like with its default data points.
     ## Line #1 text format.
     ## [Lists each DataPoint but omitted here for space reasons]
     # Setting type: String
-    # Default value: Ship: $%ShipLootValue%(%ShipLootCount%)/$%MoonLootValue%(%MoonLootCount%)
-    Format = Ship: $%ShipLootValue%(%ShipLootCount%)/$%MoonLootValue%(%MoonLootCount%) - $%InventoryLootValue%(%InventoryLootCount%)
+    # Default value: Ship: $%ShipLootValue%(%ShipLootCount%) / $%MoonLootValue%(%MoonLootCount%) <i>[%MoonName%:%Weather%]</i>
+    Format = Ship: $%ShipLootValue%(%ShipLootCount%) / $%MoonLootValue%(%MoonLootCount%) <i>[%MoonName%:%Weather%]</i>
 
     [Line #2]
     ## Line #2 text format.
     ## [Lists each DataPoint but omitted here for space reasons]
     # Setting type: String
-    # Default value: Ship: Quota: $%FulfilledValue%/$%QuotaValue% - $%ExpectedProfit%(%CompanyRate%%)
-    Format = Quota: $%FulfilledValue%/$%QuotaValue% - $%ExpectedProfit%(%CompanyRate%%)
+    # Default value: Quota: $%FulfilledValue% / $%QuotaValue% - Profit: $%ExpectedProfit%(%CompanyRate%%)
+    Format = Quota: $%FulfilledValue% / $%QuotaValue% - Profit: $%ExpectedProfit%(%CompanyRate%%)
 
     [Line #3]
     ## Line #3 text format.
     ## [Lists each DataPoint but omitted here for space reasons]
     # Setting type: String
     # Default value: Deadline: %Deadline% - %DayNumberHuman% day
-    Format = Deadline: %DeadlineWithColors% - %DayNumberHuman% day (%Weather%)
+    Format = Deadline: %Deadline% - %DayNumberHuman% day
   ```
 
   ![](https://github.com/ProfX66/ShipLootPlus/blob/main/Assets/SLP-LethalConfig-DataPoints.png?raw=true)
@@ -261,46 +444,6 @@ This is what the HUD looks like with its default data points.
 
   </details>
 
-  #### [_All Caps_]
-  Force all text to be capitalized.
-
-  <details>
-    <summary>Enable/Disable: All Caps</summary>
-
-  ```cfg
-    ## Should text be in all caps?
-    # Setting type: Boolean
-    # Default value: false
-    All Caps = false
-  ```
-
-  </details>
-
-  #### [_Short Character Count_]
-  This is the amount of characters to return for the various "Short" data point variants
-
-  <details>
-    <summary>Short Character Count</summary>
-
-  ```cfg
-    ## How many characters to show for the following data points:
-    ## 
-    ## %WeatherShort%
-    ## Current moons weather (short name)
-    ## 
-    ## %MoonShortName%
-    ## Current moons short name
-    ## 
-    ## 
-    # Setting type: Int32
-    # Default value: 3
-    Short Character Count = 3
-  ```
-
-  </details>
-
-  > **NOTE**: "Experimentation" becomes "Exp"
-
   #### [_Text Line #1_]
   This is the first (top) text line element
 
@@ -330,7 +473,7 @@ This is what the HUD looks like with its default data points.
 
   </details>
 
-#### [_Text Line #2_]
+  #### [_Text Line #2_]
   This is the second (middle) text line element
 
   <details>
@@ -391,33 +534,263 @@ This is what the HUD looks like with its default data points.
   #### Custom Colors Example
   ![](https://github.com/ProfX66/ShipLootPlus/blob/main/Assets/SLP-DefaultLayout-Color.png?raw=true)
 
-  #### All Caps Example
-  ![](https://github.com/ProfX66/ShipLootPlus/blob/main/Assets/SLP-DefaultLayout-Caps.png?raw=true)
-
 ---
 
 </details>
 
 <details>
-  <summary>Dynamic text line scaling</summary>
+  <summary>GUI Layout</summary>
   
+  The layout of the HUD elements can be customized in a few ways.
+
+  <details>
+  <summary>Font Settings</summary>
+    
+  You can customize how the font is displayed with the below configurations
+
+  ![](https://github.com/ProfX66/ShipLootPlus/blob/main/Assets/SLP-LethalConfig-FontSettings.png?raw=true)
+
+  #### [_Font Selection_]
+  You can change which font is being used by ShipLootPlus, the default is the vanilla in-game font, but if you wanted to have dollar signs or other special characters display correctly you can.
+
+  Font List:
+  - Vanilla (Default)
+  - Fixed (Regular version of the 3270Font which fixes the dollar sign)
+  - FixedSemiCondensed (Same as Fixed but slightly more condensed)
+  - FixedCondense (Same as Fixed but more condensed )
+
+  ![](https://github.com/ProfX66/ShipLootPlus/blob/main/Assets/SLP-LethalConfig-FontList.png?raw=true)
+
+  ##### Fixed
+  ![](https://github.com/ProfX66/ShipLootPlus/blob/main/Assets/SLP-DefaultLayout-Font-Fixed.png?raw=true)
+  ##### FixedSemiCondensed
+  ![](https://github.com/ProfX66/ShipLootPlus/blob/main/Assets/SLP-DefaultLayout-Font-Fixed-SemiCondensed.png?raw=true)
+  ##### FixedCondense
+  ![](https://github.com/ProfX66/ShipLootPlus/blob/main/Assets/SLP-DefaultLayout-Font-Fixed-Condensed.png?raw=true)
+
+  <details>
+    <summary>Configuration</summary>
+
+  ```cfg
+    ## Font to use for the UI elements
+    # Setting type: FontList
+    # Default value: Vanilla
+    # Acceptable values: Vanilla, Fixed, FixedSemiCondensed, FixedCondensed
+    Font = Fixed
+  ```
+
+  </details>
+
+  #### [_All Caps_]
+  Enable/Disable all text being capitalized.
+
+  ![](https://github.com/ProfX66/ShipLootPlus/blob/main/Assets/SLP-DefaultLayout-Caps.png?raw=true)
+
+  <details>
+    <summary>Configuration</summary>
+
+  ```cfg
+    ## Should text be in all caps?
+    # Setting type: Boolean
+    # Default value: false
+    All Caps = false
+  ```
+
+  </details>
+
+  #### [_Size_]
+  Change the size of the font
+
+  <details>
+    <summary>Configuration</summary>
+
+  ```cfg
+    ## Adjust the font size
+    # Setting type: Single
+    # Default value: 19
+    Size = 19
+  ```
+
+  </details>
+
+  #### [_Character Spacing_]
+  Change the Character Spacing of the font
+
+  <details>
+    <summary>Configuration</summary>
+
+  ```cfg
+    ## Adjust the spacing between characters
+    # Setting type: Single
+    # Default value: -6
+    Character Spacing = -6
+  ```
+
+  </details>
+
+  #### [_Word Spacing_]
+  Change the Word Spacing of the font
+
+  <details>
+    <summary>Configuration</summary>
+
+  ```cfg
+    ## Adjust the spacing between words
+    # Setting type: Single
+    # Default value: -20
+    Word Spacing = -20
+  ```
+
+  </details>
+
+  #### [_Text Alignment_]
+  Change the Text Alignment of the text fields
+
+  > **_IMPORTANT_**: This may produce unwanted results, everything is designed to be TopLeft and changing it may cause things to not display correctly
+
+  <details>
+    <summary>Configuration</summary>
+
+  ```cfg
+    ## Change the default text alignment for all elements
+    ## 
+    ## <b>**IMPORTANT**</b> The elements are built to stay Top Left aligned, changing this may produce unwanted outcomes
+    # Setting type: TextAlignmentOptions
+    # Default value: TopLeft
+    # Acceptable values: TopLeft, Top, TopRight, TopJustified, TopFlush, TopGeoAligned, Left, Center, Right, Justified, Flush, CenterGeoAligned, BottomLeft, Bottom, BottomRight, BottomJustified, BottomFlush, BottomGeoAligned, BaselineLeft, Baseline, BaselineRight, BaselineJustified, BaselineFlush, BaselineGeoAligned, MidlineLeft, Midline, MidlineRight, MidlineJustified, MidlineFlush, MidlineGeoAligned, CaplineLeft, Capline, CaplineRight, CaplineJustified, CaplineFlush, CaplineGeoAligned, Converted
+    Text Alignment = TopLeft
+  ```
+
+  </details>
+
+  #### [_Transparency_]
+  Change the Transparency/Alpha of the text
+
+  <details>
+    <summary>Configuration</summary>
+
+  ```cfg
+    ## Make the text elements more or less transparent
+    # Setting type: Single
+    # Default value: 0.95
+    Transparency = 0.95
+  ```
+
+  </details>
+
+  ---
+
+  </details>
+
+  <details>
+  <summary>Layout Settings</summary>
+    
+  The whole layout of the GUI can be customized
+
+  ![](https://github.com/ProfX66/ShipLootPlus/blob/main/Assets/SLP-LethalConfig-Layout.png?raw=true)
+
+  #### [_Position_]
+  You can move the location of the GUI to any place on the screen
+
+  <details>
+    <summary>Configuration</summary>
+
+  ```cfg
+    ## The X position of the UI element group
+    # Setting type: Single
+    # Default value: 115
+    Position: X (Left/Right) = 115
+
+    ## The Y position of the UI element group
+    # Setting type: Single
+    # Default value: -169
+    Position: Y (Up/Down) = -169
+  ```
+  
+  </details>
+
+  #### [_Scale_]
+  You can change the scaling of the GUI to make it larger or smaller
+
+  <details>
+    <summary>Configuration</summary>
+
+  ```cfg
+    ## The X scale of the UI element group
+    # Setting type: Single
+    # Default value: 0.6
+    Scale: X (Left/Right) = 0.6
+
+    ## The Y scale of the UI element group
+    # Setting type: Single
+    # Default value: 0.6
+    Scale: Y (Up/Down) = 0.6
+  ```
+
+  </details>
+
+  #### [_Rotation_]
+  You can change the Z rotation of the GUI to tilt it any degree you want
+
+  <details>
+    <summary>Configuration</summary>
+
+  ```cfg
+    ## This changes how much the UI element group is rotated on the screen
+    # Setting type: Single
+    # Default value: 356
+    Rotation: Z (Tilt) = 356
+  ```
+
+  </details>
+
+  #### [_Text Field Width Offset_]
+  You can change how many characters are displayed before it truncates, this can be helpful if you are changing the scaling.
+
+  This isn't measured in character count, only the width of the text field which is dynamically chosen based on how many lines are enabled.
+
+  The offset is just added to the width, so if you want to show more you would make it a positive value, less would be a negative value
+
+  <details>
+    <summary>Configuration</summary>
+
+  ```cfg
+    ## This value allows you to offset the text field width if you want to show more or less characters on screen
+    # Setting type: Single
+    # Default value: 0
+    Text Field Width Offset = 0
+  ```
+
+  </details>
+
+  ---
+
+  </details>
+
+  <details>
+  <summary>Dynamic text line scaling</summary>
+    
   The default layout is three lines of custom data, but sometimes that may be too much information, so you can disable any or all text lines if you want.
 
   Since disabling them would normally mean a gap with whitespace, I built in dynamic scaling so that it will scale up the text lines based on how many are enabled. The only down side to this is it gives you less characters per line.
 
-![](https://github.com/ProfX66/ShipLootPlus/blob/main/Assets/SLP-Scaling-2Line.png?raw=true)
+  ![](https://github.com/ProfX66/ShipLootPlus/blob/main/Assets/SLP-Scaling-2Line.png?raw=true)
 
-> **NOTE**: If the line is too long it will be truncated with ellipses
+  > **NOTE**: If the line is too long it will be truncated with ellipses
 
-![](https://github.com/ProfX66/ShipLootPlus/blob/main/Assets/SLP-Scaling-1Line.png?raw=true)
+  ![](https://github.com/ProfX66/ShipLootPlus/blob/main/Assets/SLP-Scaling-1Line.png?raw=true)
 
-> **NOTE**: This is the closest to the original ShipLoot
+  > **NOTE**: This is the closest to the original ShipLoot
 
   Alternatively you could just disable the Line Graphic and set the Format for the line you don't want to see to an empty string (blank) to keep the original scale.
 
-![](https://github.com/ProfX66/ShipLootPlus/blob/main/Assets/SLP-CustomLayout-BlankLine2.png?raw=true)
+  ![](https://github.com/ProfX66/ShipLootPlus/blob/main/Assets/SLP-CustomLayout-BlankLine2.png?raw=true)
 
----
+  </details>
+
+  ---
+
+</details>
 
 </details>
 
@@ -451,11 +824,13 @@ This is what the HUD looks like with its default data points.
   - [_**x**_] Option to make the HUD elements not tied to scanning so they are always shown
     - [_**x**_] Make this honor the allow outside setting, if not allowed outside then only always show while on the ship
   - [_**x**_] Enable Rich Text support for each text field (override text formatting and color for specific elements instead of just the whole line)
-  - [ ] Option to change the HUD elements position (so it could be moved anywhere on screen)
-    - [ ] Once this is working, remove the original ShipLoot incompatibility (so both could be ran together if desired)
-  - [ ] Option to change the HUD elements size/scaling (so it can be resized as well)
-  - [ ] Option to customize the color coded deadline colors and thresholds
-  - [ ] Option to change font
+  - [_**x**_] Option to change the HUD elements position (so it could be moved anywhere on screen)
+    - ~~[ ] Once this is working, remove the original ShipLoot incompatibility (so both could be ran together if desired)~~
+  - [_**x**_] Option to change the HUD elements size/scaling (so it can be resized as well)
+  - [_**x**_] Option to customize the color coded deadline colors and thresholds
+  - [_**x**_] Option to customize the color coded weather colors
+  - [_**x**_] Option to change font
+  - [_**x**_] Option to change text settings
   - [_**x**_] Configurable timeout so you can customize how long it shows
   - [_**x**_] Expand the width of the text elements so more data can be shown before it truncates
   - [ ] Expand the amount of lines that can be enabled (from a default of 3, up to 5) with auto scaling
@@ -497,8 +872,23 @@ The following are mods either tested to be compatible or not
 - [EladsHUD](https://thunderstore.io/c/lethal-company/p/EladNLG/EladsHUD//)
 - Likely most mods (ill do a more comprehensive test with the most popular mods later)
 
+## Font Asset Bundle Information
+The font asset bundle I created for this mod can be used by any other mod developer if they want to. I've complied with the license by embedding it into the asset bundle as well as delivering it with the bundle itself.
+
+Since I do not own the fonts and as per their license the fonts can be distributed with their license, I am making the asset bundle available to anyone who wants to use the updated versions of the three [_3270Fonts_](https://github.com/rbanffy/3270font) in their mod.
+
+The fonts included are:
+- 3270 Regular
+- 3270 SemiCondensed
+- 3270 Condensed
+
+Download the font asset bundle here: https://github.com/ProfX66/ShipLootPlus/tree/main/Assets/Fonts
+
+> **_NOTE:_** Please also include the "3270Fonts-LICENSE.txt" file with your mod to ensure there is zero confusion about license compliance
+
 ## Other Mods
 [![EnhancedSpectator](https://gcdn.thunderstore.io/live/repository/icons/PXC-EnhancedSpectator-1.0.2.png.128x128_q95.png 'EnhancedSpectator')](https://thunderstore.io/c/lethal-company/p/PXC/EnhancedSpectator/)
+[![PreloadManager](https://gcdn.thunderstore.io/live/repository/icons/PXC-PreloadManager-1.0.1.png.128x128_q95.png 'PreloadManager')](https://thunderstore.io/c/lethal-company/p/PXC/PreloadManager/)
 [![PrideSuits](https://gcdn.thunderstore.io/live/repository/icons/PXC-PrideSuits-1.0.2.png.128x128_q95.jpg 'PrideSuits')](https://thunderstore.io/c/lethal-company/p/PXC/PrideSuits/)
 [![PrideSuitsAnimated](https://gcdn.thunderstore.io/live/repository/icons/PXC-PrideSuitsAnimated-1.0.1.png.128x128_q95.jpg 'PrideSuitsAnimated')](https://thunderstore.io/c/lethal-company/p/PXC/PrideSuitsAnimated/)
 [![PrideCosmetics](https://gcdn.thunderstore.io/live/repository/icons/PXC-PrideCosmetics-1.0.2.png.128x128_q95.png 'PrideCosmetics')](https://thunderstore.io/c/lethal-company/p/PXC/PrideCosmetics/)
