@@ -16,7 +16,8 @@ namespace ShipLootPlus.Patches
         [HarmonyPatch(typeof(StartOfRound), "ReviveDeadPlayers")]
         private static void PlayerHasRevivedServerRpc()
         {
-            if (!UiHelper.IsRefreshing)
+            if (ConfigSettings.DebugMode.Value) ShipLootPlus.Log.LogMessage($"[PlayerHasRevivedServerRpc] Received ClientRpc notifying a player was revived");
+            if (!ConfigSettings.DisableRpcHooks.Value && GameNetworkManager.Instance != null && !UiHelper.IsRefreshing)
             {
                 GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
             }
@@ -29,7 +30,8 @@ namespace ShipLootPlus.Patches
         [HarmonyPatch(typeof(StartOfRound), "EndOfGameClientRpc")]
         private static void RefreshDay()
         {
-            if (!UiHelper.IsRefreshing)
+            if (ConfigSettings.DebugMode.Value) ShipLootPlus.Log.LogMessage($"[EndOfGameClientRpc] Received ClientRpc notifying that the round has ended");
+            if (!ConfigSettings.DisableRpcHooks.Value && GameNetworkManager.Instance != null && !UiHelper.IsRefreshing)
             {
                 GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
             }
@@ -42,7 +44,8 @@ namespace ShipLootPlus.Patches
         [HarmonyPatch(typeof(StartOfRound), nameof(StartGame))]
         private static void StartGame()
         {
-            if (!UiHelper.IsRefreshing)
+            if (ConfigSettings.DebugMode.Value) ShipLootPlus.Log.LogMessage($"[StartGame] Lobby has been started");
+            if (GameNetworkManager.Instance != null && !UiHelper.IsRefreshing)
             {
                 GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
             }
@@ -55,7 +58,8 @@ namespace ShipLootPlus.Patches
         [HarmonyPatch(typeof(StartOfRound), nameof(Start))]
         private static void Start()
         {
-            if (!UiHelper.IsRefreshing)
+            if (ConfigSettings.DebugMode.Value) ShipLootPlus.Log.LogMessage($"[Start] Round has started");
+            if (GameNetworkManager.Instance != null && !UiHelper.IsRefreshing)
             {
                 GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
             }
@@ -68,7 +72,8 @@ namespace ShipLootPlus.Patches
         [HarmonyPatch(typeof(StartOfRound), nameof(SetTimeAndPlanetToSavedSettings))]
         private static void SetTimeAndPlanetToSavedSettings()
         {
-            if (!UiHelper.IsRefreshing)
+            if (ConfigSettings.DebugMode.Value) ShipLootPlus.Log.LogMessage($"[SetTimeAndPlanetToSavedSettings] Moon change has been saved");
+            if (GameNetworkManager.Instance != null && !UiHelper.IsRefreshing)
             {
                 GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
             }
@@ -82,31 +87,32 @@ namespace ShipLootPlus.Patches
         [HarmonyPostfix]
         private static void SyncShipUnlockablesClientRpc()
         {
-#if DEBUG
-            ShipLootPlus.Log.LogWarning($"[SyncShipUnlockablesClientRpc] Needs first time sync? {UiHelper.FirstTimeSync}");
-#endif
-            if (!UiHelper.FirstTimeSync)
+            if (ConfigSettings.DebugMode.Value) ShipLootPlus.Log.LogMessage($"[SyncShipUnlockablesClientRpc] Received ClientRpc to sync ship unlockable items - Needs first time sync? {UiHelper.FirstTimeSync}");
+            if (!ConfigSettings.DisableRpcHooks.Value)
             {
-                ShipLootPlus.Log.LogWarning("Fixing ship scrap tags on first RPC sync...");
-                List<GrabbableObject> scrapList = Object.FindObjectsOfType<GrabbableObject>().Where(s => s.itemProperties.isScrap).ToList();
-                if (scrapList.Count == 0)
+                if (!UiHelper.FirstTimeSync)
                 {
-                    ShipLootPlus.Log.LogWarning("List was empty - Attempting to get objects from ship game object...");
-                    scrapList = GameObject.Find("/Environment/HangarShip").GetComponentsInChildren<GrabbableObject>().ToList();
+                    ShipLootPlus.Log.LogWarning("Fixing ship scrap tags on first RPC sync...");
+                    List<GrabbableObject> scrapList = Object.FindObjectsOfType<GrabbableObject>().Where(s => s.itemProperties.isScrap).ToList();
+                    if (scrapList.Count == 0)
+                    {
+                        ShipLootPlus.Log.LogWarning("List was empty - Attempting to get objects from ship game object...");
+                        scrapList = GameObject.Find("/Environment/HangarShip").GetComponentsInChildren<GrabbableObject>().ToList();
+                    }
+
+                    scrapList.ForEach(s =>
+                    {
+                        bool isInShipRoom = s.isInShipRoom;
+                        bool isInElevator = s.isInElevator;
+                        s.isInShipRoom = true;
+                        s.isInElevator = true;
+                        ShipLootPlus.Log.LogInfo($"[{s.name}] isInShipRoom: {isInShipRoom} => {s.isInElevator} | isInElevator: {isInElevator} => {s.isInElevator}");
+                    });
+
+                    UiHelper.FirstTimeSync = true;
                 }
-
-                scrapList.ForEach(s =>
-                {
-                    bool isInShipRoom = s.isInShipRoom;
-                    bool isInElevator = s.isInElevator;
-                    s.isInShipRoom = true;
-                    s.isInElevator = true;
-                    ShipLootPlus.Log.LogInfo($"[{s.name}] isInShipRoom: {isInShipRoom} => {s.isInElevator} | isInElevator: {isInElevator} => {s.isInElevator}");
-                });
-
-                UiHelper.FirstTimeSync = true;
+                UiHelper.RefreshElementValues();
             }
-            UiHelper.RefreshElementValues();
         }
 
         /// <summary>
@@ -117,7 +123,8 @@ namespace ShipLootPlus.Patches
         [HarmonyPostfix]
         private static void ResetShip(StartOfRound __instance)
         {
-            if (!UiHelper.IsRefreshing)
+            if (ConfigSettings.DebugMode.Value) ShipLootPlus.Log.LogMessage($"[ResetShip] Ship state has been reset");
+            if (GameNetworkManager.Instance != null && !UiHelper.IsRefreshing)
             {
                 GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
             }
@@ -130,8 +137,8 @@ namespace ShipLootPlus.Patches
         [HarmonyPostfix]
         private static void LoadShipGrabbableItems()
         {
-            //UiHelper.RefreshElementValues();
-            if (!UiHelper.IsRefreshing)
+            if (ConfigSettings.DebugMode.Value) ShipLootPlus.Log.LogMessage($"[LoadShipGrabbableItems] Loading all items in the ship container");
+            if (GameNetworkManager.Instance != null && !UiHelper.IsRefreshing)
             {
                 GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
             }
@@ -141,8 +148,8 @@ namespace ShipLootPlus.Patches
         [HarmonyPostfix]
         private static void AllPlayersHaveRevivedClientRpc()
         {
-            //UiHelper.RefreshElementValues();
-            if (!UiHelper.IsRefreshing)
+            if (ConfigSettings.DebugMode.Value) ShipLootPlus.Log.LogMessage($"[PlayerHasRevivedServerRpc] Received ClientRpc notifying that all players were revived");
+            if (!ConfigSettings.DisableRpcHooks.Value && GameNetworkManager.Instance != null && !UiHelper.IsRefreshing)
             {
                 GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
             }
@@ -155,11 +162,8 @@ namespace ShipLootPlus.Patches
         [HarmonyPostfix]
         private static void SetMapScreenInfoToCurrentLevel()
         {
+            if (ConfigSettings.DebugMode.Value) ShipLootPlus.Log.LogMessage($"[SetMapScreenInfoToCurrentLevel] Moon has changed");
             UiHelper.RefreshElementValues();
-            /*if (!UiHelper.IsRefreshing)
-            {
-                GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
-            }*/
         }
     }
 }

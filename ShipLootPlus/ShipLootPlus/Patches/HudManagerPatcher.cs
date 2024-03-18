@@ -1,7 +1,6 @@
 ﻿using HarmonyLib;
 using ShipLootPlus.Utils;
 using UnityEngine.InputSystem;
-using static ShipLootPlus.ShipLootPlus;
 
 namespace ShipLootPlus.Patches
 {
@@ -17,11 +16,11 @@ namespace ShipLootPlus.Patches
         [HarmonyPatch(typeof(HUDManager), nameof(HUDManager.PingScan_performed))]
         private static void OnScan(HUDManager __instance, InputAction.CallbackContext context)
         {
-            if (GameNetworkManager.Instance.localPlayerController == null) return;
+            if (GameNetworkManager.Instance == null && GameNetworkManager.Instance.localPlayerController == null) return;
+            if (ConfigSettings.DebugMode.Value) ShipLootPlus.Log.LogMessage($"[OnScan] Required objects are not null - Continuing...");
             if (!context.performed || !__instance.CanPlayerScan() || __instance.playerPingingScan > -0.5f) return;
-#if DEBUG
-            Log.LogWarning($"in OnScan => Refreshing: {UiHelper.IsRefreshing}");
-#endif
+
+            if (ConfigSettings.DebugMode.Value) ShipLootPlus.Log.LogMessage($"[OnScan] Currently refreshing? {UiHelper.IsRefreshing}");
             if (ConfigSettings.DisplayDurationReset.Value) UiHelper.timeLeftDisplay = ConfigSettings.DisplayDuration.Value;
             if (ConfigSettings.RefreshOnScan.Value && !UiHelper.IsRefreshing)
             {
@@ -49,8 +48,10 @@ namespace ShipLootPlus.Patches
         [HarmonyPatch(typeof(HUDManager), "Update")]
         private static void Postfix(HUDManager __instance)
         {
-            if (GameNetworkManager.Instance.localPlayerController == null) return;
-            UiHelper.TryToggleUi();
+            if (GameNetworkManager.Instance != null && GameNetworkManager.Instance.localPlayerController != null)
+            {
+                UiHelper.TryToggleUi();
+            }
         }
 
         /// <summary>
@@ -60,7 +61,8 @@ namespace ShipLootPlus.Patches
         [HarmonyPostfix]
         private static void DisplayNewScrapFound()
         {
-            if (!UiHelper.IsRefreshing)
+            if (ConfigSettings.DebugMode.Value) ShipLootPlus.Log.LogMessage($"[DisplayNewScrapFound] New scrap delivered to ship");
+            if (GameNetworkManager.Instance != null && !UiHelper.IsRefreshing)
             {
                 GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
             }
@@ -73,7 +75,8 @@ namespace ShipLootPlus.Patches
         [HarmonyPostfix]
         private static void DisplayDaysLeft()
         {
-            if (!UiHelper.IsRefreshing)
+            if (ConfigSettings.DebugMode.Value) ShipLootPlus.Log.LogMessage($"[DisplayDaysLeft] Deadline has updated");
+            if (GameNetworkManager.Instance != null && !UiHelper.IsRefreshing)
             {
                 GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
             }

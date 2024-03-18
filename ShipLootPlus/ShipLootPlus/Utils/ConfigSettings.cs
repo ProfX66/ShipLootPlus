@@ -76,6 +76,9 @@ namespace ShipLootPlus.Utils
         public static ConfigEntry<string> WeatherColorStormy;
         public static ConfigEntry<string> WeatherColorHell;
 
+        public static ConfigEntry<bool> DebugMode;
+        public static ConfigEntry<bool> DisableRpcHooks;
+
         /// <summary>
         /// Create BepInEx config items
         /// </summary>
@@ -91,14 +94,6 @@ namespace ShipLootPlus.Utils
                 sb.AppendLine(dataPoint.Pattern);
                 sb.AppendLine(dataPoint.Description);
                 sb.AppendLine();
-            }
-
-            StringBuilder sbShort = new StringBuilder();
-            foreach (ReplacementData dataPoint in UiHelper.DataPoints.Where(e => Regex.IsMatch(e.Name, "Short", RegexOptions.IgnoreCase)))
-            {
-                sbShort.AppendLine(dataPoint.Pattern);
-                sbShort.AppendLine(dataPoint.Description);
-                sbShort.AppendLine();
             }
 
             //TODO: Add show in spectator option
@@ -174,6 +169,10 @@ namespace ShipLootPlus.Utils
             WeatherColorFlooded = config.Bind<string>(category, "Color: Flooded", "FF0000", "Color for Flooded weather");
             WeatherColorEclipsed = config.Bind<string>(category, "Color: Eclipsed", "BA0B0B", "Color for Eclipsed weather");
             WeatherColorHell = config.Bind<string>(category, "Color: Hell", "AA0000", "Color for Hell weather (from the mod 'HellWeather')");
+
+            category = "Debug Settings";
+            DebugMode = config.Bind<bool>(category, "Debug Mode", false, "Enables debug logging **IMPORTANT** This will DEFINITELY cause lag and stutters as it writes a lot of debug lines, only use this if asked to help troubleshoot a problem!");
+            DisableRpcHooks = config.Bind<bool>(category, "Disable RPC Hooks", false, "Disable all data point refresh RPC hooks. This will impact how often the data points are updated. You can always enable 'Refresh Data On Scan' below to make it refresh faster.");
 
             // Config conversions #ba0b0b
             int oldShort = 3;
@@ -387,6 +386,10 @@ namespace ShipLootPlus.Utils
             LethalConfigManager.AddConfigItem(new TextInputFieldConfigItem(WeatherColorFlooded, false));
             LethalConfigManager.AddConfigItem(new TextInputFieldConfigItem(WeatherColorEclipsed, false));
             LethalConfigManager.AddConfigItem(new TextInputFieldConfigItem(WeatherColorHell, false));
+
+            //Debug Settings
+            LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(DebugMode, false));
+            LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(DisableRpcHooks, false));
         }
 
         #region Future

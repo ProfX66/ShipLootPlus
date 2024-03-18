@@ -13,7 +13,8 @@ namespace ShipLootPlus.Patches
         [HarmonyPatch(typeof(TimeOfDay), nameof(UpdateProfitQuotaCurrentTime))]
         private static void UpdateProfitQuotaCurrentTime()
         {
-            if (!UiHelper.IsRefreshing)
+            if (ConfigSettings.DebugMode.Value) ShipLootPlus.Log.LogMessage($"[UpdateProfitQuotaCurrentTime] Quota and time has been updated");
+            if (GameNetworkManager.Instance != null && !UiHelper.IsRefreshing)
             {
                 GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
             }

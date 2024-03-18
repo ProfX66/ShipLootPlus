@@ -133,9 +133,7 @@ namespace ShipLootPlus.Utils
         /// </summary>
         public static void CreateUiElements()
         {
-#if DEBUG
-            Log.LogWarning(string.Format("\n{0}", FiggleFonts.Doom.Render("Adding Objects")));
-#endif
+            if (ConfigSettings.DebugMode.Value) Log.LogMessage($"[CreateUiElements] Creating UI objects");
             GameObject PlayerHUD = GameObject.Find("/Systems/UI/Canvas/IngamePlayerHUD");
             GameObject valueCounter = GameObject.Find("/Systems/UI/Canvas/IngamePlayerHUD/BottomMiddle/ValueCounter");
             if (!valueCounter)
@@ -292,9 +290,8 @@ namespace ShipLootPlus.Utils
             });
 
             RefreshElementValues();
-#if DEBUG
-            Log.LogWarning(string.Format("\n{0}", FiggleFonts.Doom.Render("Showing Objects")));
-#endif
+
+            if (ConfigSettings.DebugMode.Value) Log.LogMessage($"[CreateUiElements] Enabling UI objects");
             if (ConfigSettings.AlwaysShow.Value) ContainerObject.SetActive(true);
         }
 
@@ -555,9 +552,7 @@ namespace ShipLootPlus.Utils
             {
                 string item = match.Groups[1].Value;
                 string sanFormat = Regex.Replace(item, @":.*", "");
-#if DEBUG
-                Log.LogMessage($"[SetDataSubSet] format: {item} => {sanFormat}");
-#endif
+                if (ConfigSettings.DebugMode.Value) Log.LogMessage($"[SetDataSubSet] New Data Subset => {item} => {sanFormat}");
                 if (!DataSubSet.Contains(sanFormat)) DataSubSet.Add(sanFormat);
             }
         }
@@ -567,28 +562,25 @@ namespace ShipLootPlus.Utils
         /// </summary>
         public static void RefreshElementValues()
         {
-#if DEBUG
-            StackTrace stackTrace = new StackTrace();
-            MethodBase callingMethod = stackTrace.GetFrames().Skip(1).Select(frame => frame.GetMethod()).FirstOrDefault();
-            Log.LogWarning($"[RefreshElementValues:{IsUpdating}] Caller => {callingMethod}");
-#endif
+            if (ConfigSettings.DebugMode.Value)
+            {
+                StackTrace stackTrace = new StackTrace();
+                MethodBase callingMethod = stackTrace.GetFrames().Skip(1).Select(frame => frame.GetMethod()).FirstOrDefault();
+                Log.LogMessage($"[RefreshElementValues:{IsUpdating}] Caller => {callingMethod}");
+            }
+
             if (!IsUpdating) { IsUpdating = true; }
             if (UiElementList == null || ContainerObject == null)
             {
-#if DEBUG
-                Log.LogWarning("UiElementList or ContainerObject => NULL");
-#endif
+                if (ConfigSettings.DebugMode.Value) Log.LogWarning($"[RefreshElementValues:{IsUpdating}] UiElementList or ContainerObject is NULL!");
                 return;
             }
             IEnumerable<ShipLootPlusItem> ElementsToUpdate = UiElementList.Where(e => !e.image && e.gameOjbect != null);
-#if DEBUG
-            Log.LogWarning($"Elements to update: {ElementsToUpdate.Count()}");
-#endif
+
+            if (ConfigSettings.DebugMode.Value) Log.LogMessage($"[RefreshElementValues:{IsUpdating}] Elements to update: {ElementsToUpdate.Count()}");
             if (ElementsToUpdate == null || ElementsToUpdate.Count() <= 0)
             {
-#if DEBUG
-                Log.LogWarning("ElementsToUpdate => NULL or 0");
-#endif
+                if (ConfigSettings.DebugMode.Value) Log.LogWarning($"[RefreshElementValues:{IsUpdating}] ElementsToUpdate is NULL or ZERO!");
                 return;
             }
 
@@ -606,18 +598,19 @@ namespace ShipLootPlus.Utils
                 currentWeather = ConfigSettings.WeatherNoneReplacement.Value;
             }
 
-#if DEBUG
-            Log.LogWarning("========================================");
-            foreach (var item in Enum.GetValues(typeof(LevelWeatherType)))
+            if (ConfigSettings.DebugMode.Value)
             {
-                Log.LogInfo($"[Weather] {item}");
-            }
+                Log.LogMessage($"[RefreshElementValues:{IsUpdating}] Weather list");
+                foreach (var item in Enum.GetValues(typeof(LevelWeatherType)))
+                {
+                    Log.LogInfo($"[Weather] {item}");
+                }
 
-            Log.LogMessage($"Current String: {currentWeather}");
-            Log.LogMessage($"Current Enum  : {currentWeatherEnum}");
-            Log.LogMessage($"Current Type  : {currentWeatherEnum.GetType()}");
-            Log.LogWarning("========================================");
-#endif
+                Log.LogMessage($"[RefreshElementValues:{IsUpdating}] Current String: {currentWeather}");
+                Log.LogMessage($"[RefreshElementValues:{IsUpdating}] Current Enum  : {currentWeatherEnum}");
+                Log.LogMessage($"[RefreshElementValues:{IsUpdating}] Current Type  : {currentWeatherEnum.GetType()}");
+                Log.LogMessage("");
+            }
 
             string weatherColorCode = "#ffffffff";
             if (ConfigSettings.WeatherUseColors.Value)
@@ -657,12 +650,15 @@ namespace ShipLootPlus.Utils
             }
             
             string currentMoon = sor.currentLevel.PlanetName;
-#if DEBUG
-            Log.LogWarning($"currentMoon: {currentMoon}");
-            Log.LogWarning($"MoonShowFullName: {ConfigSettings.MoonShowFullName.Value}");
-            Log.LogWarning($"MoonReplaceCompany: {ConfigSettings.MoonReplaceCompany.Value}");
-            Log.LogWarning($"MoonCompanyReplacement: {ConfigSettings.MoonCompanyReplacement.Value}");
-#endif
+            if (ConfigSettings.DebugMode.Value)
+            {
+                Log.LogMessage($"[RefreshElementValues:{IsUpdating}] currentMoon: {currentMoon}");
+                Log.LogMessage($"[RefreshElementValues:{IsUpdating}] MoonShowFullName: {ConfigSettings.MoonShowFullName.Value}");
+                Log.LogMessage($"[RefreshElementValues:{IsUpdating}] MoonReplaceCompany: {ConfigSettings.MoonReplaceCompany.Value}");
+                Log.LogMessage($"[RefreshElementValues:{IsUpdating}] MoonCompanyReplacement: {ConfigSettings.MoonCompanyReplacement.Value}");
+                Log.LogMessage("");
+            }
+
             if (!ConfigSettings.MoonShowFullName.Value)
             {
                 currentMoon = Regex.Replace(currentMoon, @"^\d{1,} ?", "", RegexOptions.IgnoreCase);
@@ -672,16 +668,19 @@ namespace ShipLootPlus.Utils
             {
                 if (Regex.IsMatch(currentMoon, "Gordion", RegexOptions.IgnoreCase)) { currentMoon = ConfigSettings.MoonCompanyReplacement.Value; }
             }
-#if DEBUG
-            Log.LogWarning("========================================");
+
             int count = 1;
-            foreach (ReplacementData item in DataPoints)
+            if (ConfigSettings.DebugMode.Value)
             {
-                Log.LogInfo($"[DataPoint #{count:D2}]  {item.Pattern} => {item.Value}");
-                count++;
+                Log.LogMessage($"[RefreshElementValues:{IsUpdating}] Current Data Point values:");
+                foreach (ReplacementData item in DataPoints)
+                {
+                    Log.LogInfo($"[DataPoint #{count:D2}]  {item.Pattern} => {item.Value}");
+                    count++;
+                }
+                Log.LogMessage("");
             }
-            Log.LogWarning("========================================");
-#endif
+
             string deadlineDueText = tod.daysUntilDeadline.ToString();
             string deadlineColorCode = "#ffffffff";
 
@@ -715,13 +714,17 @@ namespace ShipLootPlus.Utils
             int companyRate = ((int)(sor.companyBuyingRate * 100f));
             double profitValue = Math.Round((shipLootValue.Value - tod.quotaFulfilled) * sor.companyBuyingRate);
             if (shipLootValue.Value <= 0) { profitValue = 0; }
-#if DEBUG
-            Log.LogWarning($"shipLootValue: {shipLootValue.Value}");
-            Log.LogWarning($"moonLootValue: {moonLootValue.Value}");
-            Log.LogWarning($"allLootValue: {allLootValue.Value}");
-            Log.LogWarning($"invLootValue: {invLootValue.Value}");
-            Log.LogInfo($"deadlineDueColorText: {deadlineDueText} => {tod.daysUntilDeadline}");
-#endif
+
+            if (ConfigSettings.DebugMode.Value)
+            {
+                Log.LogMessage($"[RefreshElementValues:{IsUpdating}] shipLootValue: {shipLootValue.Value}");
+                Log.LogMessage($"[RefreshElementValues:{IsUpdating}] moonLootValue: {moonLootValue.Value}");
+                Log.LogMessage($"[RefreshElementValues:{IsUpdating}] allLootValue: {allLootValue.Value}");
+                Log.LogMessage($"[RefreshElementValues:{IsUpdating}] invLootValue: {invLootValue.Value}");
+                Log.LogMessage($"[RefreshElementValues:{IsUpdating}] deadlineDueColorText: {deadlineDueText} => {tod.daysUntilDeadline}");
+                Log.LogMessage("");
+            }
+
             Parallel.ForEach(DataPoints, (dataPoint) =>
             {
                 switch (dataPoint.Pattern)
@@ -780,30 +783,27 @@ namespace ShipLootPlus.Utils
                 }
             });
 
-#if DEBUG
-            count = 1; 
-            foreach (ReplacementData item in DataPoints)
+            count = 1;
+            if (ConfigSettings.DebugMode.Value)
             {
-                Log.LogInfo($"[DataPoint #{count:D2}]> {item.Pattern} => {item.Value}");
-                count++;
+                Log.LogMessage($"[RefreshElementValues:{IsUpdating}] New Data Point values:");
+                foreach (ReplacementData item in DataPoints)
+                {
+                    Log.LogInfo($"[DataPoint #{count:D2}]> {item.Pattern} => {item.Value}");
+                    count++;
+                }
+                Log.LogMessage("");
             }
-            Log.LogWarning("========================================");
-            Log.LogWarning($"IsUpdating: {IsUpdating}");
-#endif
+
             Parallel.ForEach(ElementsToUpdate, (slpi) =>
             {
-#if DEBUG
-                Log.LogWarning($"IsUpdating>: {IsUpdating} => {slpi.name}");
-#endif
+                if (ConfigSettings.DebugMode.Value) Log.LogMessage($"[RefreshElementValues:{IsUpdating}] Updating element: {slpi.name}");
                 string textContent = ReplaceValues(slpi.format, DataPoints.Where(d => DataSubSet.Contains(d.Name)).ToList());
                 slpi.textMeshProUGui.text = textContent;
                 //slpi.textMeshProUGui.ForceMeshUpdate();
                 if (ConfigSettings.AllCaps.Value) { slpi.textMeshProUGui.text = slpi.textMeshProUGui.text.ToUpper(); }
                 IsUpdating = false;
             });
-#if DEBUG
-            Log.LogWarning($"IsUpdating: {IsUpdating}");
-#endif
         }
 
         #endregion
@@ -811,7 +811,7 @@ namespace ShipLootPlus.Utils
         #region Method Helpers
 
         /// <summary>
-        /// Log UI element postions and return the values
+        /// Log UI element positions and return the values
         /// </summary>
         /// <param name="InObj"></param>
         /// <param name="VecPos"></param>
@@ -980,10 +980,7 @@ namespace ShipLootPlus.Utils
             if (!IsDisplaying) { IsDisplaying = true; }
 
             timeLeftDisplay = ConfigSettings.DisplayDuration.Value;
-#if DEBUG
-            Log.LogWarning($"Showing [ ContainerObject ] object...");
-            Log.LogInfo($"timeLeftDisplay:  {timeLeftDisplay} - {ConfigSettings.DisplayDuration.Value}");
-#endif
+            if (ConfigSettings.DebugMode.Value) Log.LogMessage($"[DisplayDataCoroutine:{IsDisplaying}] Showing UI => timeLeftDisplay: {timeLeftDisplay} - {ConfigSettings.DisplayDuration.Value}");
             bool hadError = false;
             try { ContainerObject.SetActive(true); }
             catch
@@ -994,17 +991,13 @@ namespace ShipLootPlus.Utils
 
             while (timeLeftDisplay > 0f)
             {
-#if DEBUG
-                Log.LogInfo($"timeLeftDisplay:> {timeLeftDisplay} - {ConfigSettings.DisplayDuration.Value}");
-#endif
+                if (ConfigSettings.DebugMode.Value) Log.LogMessage($"[DisplayDataCoroutine:{IsDisplaying}]> timeLeftDisplay: {timeLeftDisplay} - {ConfigSettings.DisplayDuration.Value}");
                 float time = timeLeftDisplay;
                 timeLeftDisplay = 0f;
                 yield return new WaitForSeconds(time);
             }
-#if DEBUG
-            Log.LogWarning($"Hiding [ ContainerObject ] object...");
-            Log.LogInfo($"timeLeftDisplay:  {timeLeftDisplay} - {ConfigSettings.DisplayDuration.Value}");
-#endif
+
+            if (ConfigSettings.DebugMode.Value) Log.LogMessage($"[DisplayDataCoroutine:{IsDisplaying}] Hiding UI => timeLeftDisplay: {timeLeftDisplay} - {ConfigSettings.DisplayDuration.Value}");
             if (!hadError)
             {
                 try { ContainerObject.SetActive(false); }
@@ -1025,25 +1018,19 @@ namespace ShipLootPlus.Utils
         {
             if (!IsRefreshing) { IsRefreshing = true; }
             timeLeftUpdate = 0.5f;
-#if DEBUG
-            Log.LogWarning($"[UpdateDatapoints:{IsRefreshing}] Callers: {GetStackTraceInfo("Patcher")}");
-            Log.LogInfo($"timeLeftUpdate:  {timeLeftUpdate}");
-#endif
+
+            if (ConfigSettings.DebugMode.Value) Log.LogMessage($"[UpdateDatapoints:{IsRefreshing}] Callers: {GetStackTraceInfo("Patcher")} => timeLeftUpdate: {timeLeftUpdate}");
             RefreshElementValues();
 
             while (timeLeftUpdate > 0f)
             {
-#if DEBUG
-                Log.LogInfo($"timeLeftUpdate:> {timeLeftUpdate}");
-#endif
+                if (ConfigSettings.DebugMode.Value) Log.LogMessage($"[UpdateDatapoints:{IsRefreshing}] Refreshing => timeLeftUpdate: {timeLeftUpdate}");
                 float time = timeLeftUpdate;
                 timeLeftUpdate = 0f;
                 yield return new WaitForSeconds(time);
             }
-#if DEBUG
-            Log.LogInfo($"timeLeftUpdate:  {timeLeftUpdate}");
-            Log.LogWarning($"Leaving UpdateDatapoints");
-#endif
+
+            if (ConfigSettings.DebugMode.Value) Log.LogMessage($"[UpdateDatapoints:{IsRefreshing}] Refresh complete => timeLeftUpdate: {timeLeftUpdate}");
             IsRefreshing = false;
         }
 
@@ -1119,23 +1106,17 @@ namespace ShipLootPlus.Utils
             }
 
             if (scrapList == null) return new LootItem { Value = 0, Count = 0 };
-#if DEBUG
-            Log.LogInfo($"[CalculateLootValue] Valid item count: {scrapList.Count}");
-            Log.LogInfo($"Calculating total {scope} scrap value.");
-            scrapList.Do(s => Log.LogInfo($"{s.name} - ${s.scrapValue}"));
 
-            scrapList.ForEach(s =>
+            if (ConfigSettings.DebugMode.Value)
             {
-                if (s != null) Log.LogInfo($"[CalculateLootValue] {s.name} - ${s.scrapValue}");
-                else Log.LogInfo($"[CalculateLootValue] Item was NULL - Skipping...");
-            });
-#endif
-            Log.LogDebug($"Calculating total {scope} scrap value.");
-            scrapList.ForEach(s =>
-            {
-                if (s != null) Log.LogDebug($"[CalculateLootValue] {s.name} - ${s.scrapValue}");
-                else Log.LogDebug($"[CalculateLootValue] Item was NULL - Skipping...");
-            });
+                Log.LogMessage($"[CalculateLootValue] Calculating total {scope} scrap value => Valid item count: {scrapList.Count}");
+                scrapList.ForEach(s =>
+                {
+                    if (s != null) Log.LogMessage($"[CalculateLootValue] {s.name} - ${s.scrapValue}");
+                    else Log.LogMessage($"[CalculateLootValue] Item was NULL - Skipping...");
+                });
+                Log.LogMessage("");
+            }
 
             return new LootItem
             {
@@ -1238,7 +1219,7 @@ namespace ShipLootPlus.Utils
         }
 
         /// <summary>
-        /// Gets the specified truncate value if it existsd in the datapoint
+        /// Gets the specified truncate value if it existed in the datapoint
         /// </summary>
         /// <param name="item"></param>
         /// <returns></returns>

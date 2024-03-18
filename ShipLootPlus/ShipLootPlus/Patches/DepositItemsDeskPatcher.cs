@@ -15,6 +15,7 @@ namespace ShipLootPlus.Patches
         [HarmonyPostfix]
         private static void PlaceItemOnCounter(PlayerControllerB __instance)
         {
+            if (ConfigSettings.DebugMode.Value) ShipLootPlus.Log.LogMessage($"[PlaceItemOnCounter] Item was deposited on the sell counter");
             UiHelper.RefreshElementValues();
         }
     }

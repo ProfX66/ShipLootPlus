@@ -13,6 +13,7 @@ namespace ShipLootPlus.Patches
         [HarmonyPatch(typeof(RoundManager), nameof(SpawnScrapInLevel))]
         private static void SpawnScrapInLevel(RoundManager __instance)
         {
+            if (ConfigSettings.DebugMode.Value) ShipLootPlus.Log.LogMessage($"[SpawnScrapInLevel] Scrap has generated on the moon");
             UiHelper.RefreshElementValues();
         }
 
@@ -23,7 +24,8 @@ namespace ShipLootPlus.Patches
         [HarmonyPatch(typeof(RoundManager), nameof(SyncScrapValuesClientRpc))]
         private static void SyncScrapValuesClientRpc()
         {
-            if (!UiHelper.IsRefreshing)
+            if (ConfigSettings.DebugMode.Value) ShipLootPlus.Log.LogMessage($"[SyncScrapValuesClientRpc] Received ClientRpc to sync scrap values");
+            if (!ConfigSettings.DisableRpcHooks.Value && !UiHelper.IsRefreshing)
             {
                 GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
             }

@@ -9,9 +9,18 @@ namespace ShipLootPlus.Patches
         [HarmonyPostfix]
         private static void OnHitGround(GrabbableObject __instance)
         {
-            if (__instance.itemProperties.isScrap && !UiHelper.IsRefreshing)
+            if (ConfigSettings.DebugMode.Value) ShipLootPlus.Log.LogMessage($"[OnHitGround] Item was thrown and hit the ground");
+            if (__instance != null && __instance.itemProperties != null && GameNetworkManager.Instance != null)
             {
-                GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
+                if (ConfigSettings.DebugMode.Value) ShipLootPlus.Log.LogMessage($"[OnHitGround] Required objects are not null - Continuing...");
+                if (__instance.itemProperties.isScrap && !UiHelper.IsRefreshing)
+                {
+                    GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
+                }
+                else
+                {
+                    if (ConfigSettings.DebugMode.Value) ShipLootPlus.Log.LogMessage($"[OnHitGround] Item was not scrap or there is a current data refresh already - Skipping refresh...");
+                }
             }
         }
     }
