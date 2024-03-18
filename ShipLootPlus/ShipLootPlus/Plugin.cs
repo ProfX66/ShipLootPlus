@@ -19,7 +19,7 @@ namespace ShipLootPlus
         public const string Author = "PXC";
         public const string Name = "ShipLootPlus";
         public const string Id = "PXC.ShipLootPlus";
-        public const string Version = "1.0.8";
+        public const string Version = "1.0.9";
         public string FullName => string.Format("{0} v{1}", Name, Version);
     }
 
@@ -40,7 +40,7 @@ namespace ShipLootPlus
         /// </summary>
         private void Awake()
         {
-            if (Instance == null) { Instance = this; }
+            Instance = Instance ?? this;
             Log = Logger;
             Log.LogInfo($"Initializing plugin: {pluginMetadata.FullName} by {PluginMetadata.Author}");
 
@@ -99,97 +99,10 @@ namespace ShipLootPlus
             }
 
             ConfigSettings.Initialize(Config, $"Allows showing up to {UiHelper.DataPoints.Count} customizable data points on your HUD.");
-            ConfigSettings.AlwaysShow.SettingChanged += ToggleUi_SettingChanged;
-            ConfigSettings.AllCaps.SettingChanged += RefreshUi_SettingChanged;
-            ConfigSettings.ShowLine.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.LineColor.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.ShowLineOne.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.LineOneColor.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.LineOneFormat.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.ShowLineTwo.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.LineTwoColor.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.LineTwoFormat.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.ShowLineThree.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.LineThreeColor.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.LineThreeFormat.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.SelectedFont.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.CharacterSpacing.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.FontSize.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.LineAlpha.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.PosX.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.PosY.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.ScaleX.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.ScaleY.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.Rotation.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.TextAlignment.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.TextAlpha.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.WordSpacing.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.WidthAppend.SettingChanged += RedrawRequired_SettingChanged;
+            ConfigEvents.Initialize();
 
-            ConfigSettings.DeadlineUseColors.SettingChanged += RefreshUi_SettingChanged;
-            ConfigSettings.DeadlineReplaceZero.SettingChanged += RefreshUi_SettingChanged;
-            ConfigSettings.DeadlineLastDay.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.DeadlineTwoColor.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.DeadlineOneColor.SettingChanged += RedrawRequired_SettingChanged;
-            ConfigSettings.DeadlineZeroColor.SettingChanged += RedrawRequired_SettingChanged;
-
-            ConfigSettings.MoonShowFullName.SettingChanged += RefreshUi_SettingChanged;
-            ConfigSettings.MoonReplaceCompany.SettingChanged += RefreshUi_SettingChanged;
-            ConfigSettings.MoonCompanyReplacement.SettingChanged += RefreshUi_SettingChanged;
-
-            ConfigSettings.WeatherNoneReplacement.SettingChanged += RefreshUi_SettingChanged;
-            ConfigSettings.WeatherUseColors.SettingChanged += RefreshUi_SettingChanged;
-            ConfigSettings.WeatherColorNone.SettingChanged += RefreshUi_SettingChanged;
-            ConfigSettings.WeatherColorDustClouds.SettingChanged += RefreshUi_SettingChanged;
-            ConfigSettings.WeatherColorRainy.SettingChanged += RefreshUi_SettingChanged;
-            ConfigSettings.WeatherColorStormy.SettingChanged += RefreshUi_SettingChanged;
-            ConfigSettings.WeatherColorFoggy.SettingChanged += RefreshUi_SettingChanged;
-            ConfigSettings.WeatherColorFlooded.SettingChanged += RefreshUi_SettingChanged;
-            ConfigSettings.WeatherColorEclipsed.SettingChanged += RefreshUi_SettingChanged;
-            ConfigSettings.WeatherColorHell.SettingChanged += RefreshUi_SettingChanged;
-#if DEBUG
-            Log.LogWarning($"Loaded! (IN DEBUG)\n{FiggleFonts.Doom.Render(pluginMetadata.FullName)}");
-#endif
-#if !DEBUG
-            Log.LogInfo($"Loaded!\n{FiggleFonts.Doom.Render(pluginMetadata.FullName)}");
-#endif
-        }
-
-        #endregion
-
-        #region Events
-
-        /// <summary>
-        /// When a setting is changed that requires a UI refresh
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void RedrawRequired_SettingChanged(object sender, System.EventArgs e)
-        {
-            if (UiHelper.ContainerObject == null) return;
-            UiHelper.ResetUiElements();
-        }
-
-        /// <summary>
-        /// Enable/Disable the UI elements based on AlwaysShow
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void ToggleUi_SettingChanged(object sender, System.EventArgs e)
-        {
-            if (UiHelper.ContainerObject == null) return;
-            UiHelper.ContainerObject.SetActive(ConfigSettings.AlwaysShow.Value);
-        }
-
-        /// <summary>
-        /// Refresh the UI data when AllCaps is changed
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void RefreshUi_SettingChanged(object sender, System.EventArgs e)
-        {
-            if (UiHelper.ContainerObject == null) return;
-            UiHelper.RefreshElementValues();
+            if (ConfigSettings.DebugMode.Value) Log.LogWarning($"Loaded! (IN DEBUG)\n{FiggleFonts.Doom.Render(pluginMetadata.FullName)}");
+            else Log.LogInfo($"Loaded!\n{FiggleFonts.Doom.Render(pluginMetadata.FullName)}");
         }
 
         #endregion
