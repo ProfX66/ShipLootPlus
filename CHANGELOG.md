@@ -1,3 +1,12 @@
+# v1.0.9
+- Cleaned up some of the code and fixed a couple misspellings
+- Added additional null checks in every patch method to ensure nothing is used when objects are unexpectedly null
+- Added configuration option to disable all RPC hooks
+  - This will impact how often the data points are updated, but it should stop any errors happening when RPC messages are received and objects aren't ready for it.
+- Added Debug Mode configuration to enable verbose logging
+  - **IMPORTANT** this will cause performance degradation unless you are using [AsyncLoggers](https://thunderstore.io/c/lethal-company/p/mattymatty/AsyncLoggers/)!
+- Updated readme
+
 # v1.0.8
 - Changed most of the UI element code to be better aligned and scaled
   - Also modified the character and word spacing to be nicer

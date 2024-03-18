@@ -792,6 +792,43 @@ This is what the HUD looks like with its default data points.
 
 </details>
 
+<details>
+  <summary>Debug Settings</summary>
+
+  This section explains the debug settings that can be enabled to assist with troubleshooting issues (generally you wont need to enable these)
+
+  #### [_Debug Mode_]
+  Enables/Disables debug mode **IMPORTANT** this will cause performance degradation unless you are using [AsyncLoggers](https://thunderstore.io/c/lethal-company/p/mattymatty/AsyncLoggers/)!
+
+  <details>
+    <summary>Configuration</summary>
+
+  ```cfg
+    ## Enables debug logging **IMPORTANT** This will DEFINITELY cause lag and stutters as it writes a lot of debug lines, only use this if asked to help troubleshoot a problem!
+    # Setting type: Boolean
+    # Default value: false
+    Debug Mode = false
+  ```
+  </details>
+
+  #### [_Disable RPC Hooks_]
+  Disables all RPC hooks, this will have an impact on how often the data points are updated as it will have a couple less events its hooking. This really is only for times when you might be encountering error spam when an object ended up not being ready, often because of state desync.
+
+  <details>
+    <summary>Configuration</summary>
+
+  ```cfg
+    ## Disable all data point refresh RPC hooks. This will impact how often the data points are updated. You can always enable 'Refresh Data On Scan' below to make it refresh faster.
+    # Setting type: Boolean
+    # Default value: false
+    Disable RPC Hooks = false
+  ```
+  </details>
+
+  ---
+
+</details>
+
 </details>
 
 ## Planned and Potential Future Features
@@ -867,7 +904,6 @@ The following are mods either tested to be compatible or not
 ### Compatible (Tested by me or the community)
 - [EnhancedSpectator](https://thunderstore.io/c/lethal-company/p/PXC/EnhancedSpectator/)
 - [GeneralImprovements](https://thunderstore.io/c/lethal-company/p/ShaosilGaming/GeneralImprovements/)
-- [AdvancedCompany](https://thunderstore.io/c/lethal-company/p/PotatoePet/AdvancedCompany/)
 - [LCBetterClock](https://thunderstore.io/c/lethal-company/p/BlueAmulet/LCBetterClock/)
 - [EladsHUD](https://thunderstore.io/c/lethal-company/p/EladNLG/EladsHUD//)
 - Likely most mods (ill do a more comprehensive test with the most popular mods later)
