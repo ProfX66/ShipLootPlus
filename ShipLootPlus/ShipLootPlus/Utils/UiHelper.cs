@@ -23,6 +23,7 @@ namespace ShipLootPlus.Utils
         private static List<string> ItemsToIgnore => new List<string> { "ClipboardManual", "StickyNoteItem", "PlayerRagdoll", "RagdollGrabbableObject" };
         public static List<string> DataSubSet { get; set; }
         public static List<ShipLootPlusItem> UiElementList { get; set; }
+        public static List<ShipLootPlusItem> ElementsToUpdate { get; set; }
         public static List<ReplacementData> DataPoints { get; set; }
         public static GameObject ContainerObject { get; set; }
         public static Vector3 SlpLocalScale { get; set; }
@@ -32,6 +33,7 @@ namespace ShipLootPlus.Utils
         public static bool IsUpdating { get; set; }
         public static bool IsRefreshing { get; set; }
         public static bool IsDisplaying { get; set; }
+        public static bool UpdateReady { get; set; }
         public static bool FirstTimeSync = false;
 
         #region Methods
@@ -57,6 +59,7 @@ namespace ShipLootPlus.Utils
                     name = "Line #1",
                     color = ConvertHexColor(ConfigSettings.LineOneColor.Value),
                     format = ConfigSettings.LineOneFormat.Value,
+                    value = ConfigSettings.LineOneFormat.Value,
                     enabled = ConfigSettings.ShowLineOne.Value
                 },
                 new ShipLootPlusItem
@@ -64,6 +67,7 @@ namespace ShipLootPlus.Utils
                     name = "Line #2",
                     color = ConvertHexColor(ConfigSettings.LineTwoColor.Value),
                     format = ConfigSettings.LineTwoFormat.Value,
+                    value = ConfigSettings.LineTwoFormat.Value,
                     enabled = ConfigSettings.ShowLineTwo.Value
                 },
                 new ShipLootPlusItem
@@ -71,6 +75,7 @@ namespace ShipLootPlus.Utils
                     name = "Line #3",
                     color = ConvertHexColor(ConfigSettings.LineThreeColor.Value),
                     format = ConfigSettings.LineThreeFormat.Value,
+                    value = ConfigSettings.LineThreeFormat.Value,
                     enabled = ConfigSettings.ShowLineThree.Value
                 }
             };
@@ -289,6 +294,7 @@ namespace ShipLootPlus.Utils
                 Log.LogInfo($"[{s.name}] isInShipRoom: {isInShipRoom} => {s.isInElevator} | isInElevator: {isInElevator} => {s.isInElevator}");
             });
 
+            ElementsToUpdate = UiElementList.Where(e => !e.image && e.gameOjbect != null).ToList();
             RefreshElementValues();
 
             if (ConfigSettings.DebugMode.Value) Log.LogMessage($"[CreateUiElements] Enabling UI objects");
@@ -535,6 +541,7 @@ namespace ShipLootPlus.Utils
             }
 
             ResizeAndPositionElements(slpObj.gameObject);
+            ElementsToUpdate = UiElementList.Where(e => !e.image && e.gameOjbect != null).ToList();
             RefreshElementValues();
         }
 
@@ -575,14 +582,14 @@ namespace ShipLootPlus.Utils
                 if (ConfigSettings.DebugMode.Value) Log.LogWarning($"[RefreshElementValues:{IsUpdating}] UiElementList or ContainerObject is NULL!");
                 return;
             }
-            IEnumerable<ShipLootPlusItem> ElementsToUpdate = UiElementList.Where(e => !e.image && e.gameOjbect != null);
-
-            if (ConfigSettings.DebugMode.Value) Log.LogMessage($"[RefreshElementValues:{IsUpdating}] Elements to update: {ElementsToUpdate.Count()}");
+            
             if (ElementsToUpdate == null || ElementsToUpdate.Count() <= 0)
             {
                 if (ConfigSettings.DebugMode.Value) Log.LogWarning($"[RefreshElementValues:{IsUpdating}] ElementsToUpdate is NULL or ZERO!");
                 return;
             }
+
+            if (ConfigSettings.DebugMode.Value) Log.LogMessage($"[RefreshElementValues:{IsUpdating}] Elements to update: {ElementsToUpdate.Count()}");
 
             //TODO: Add a datapoint to show what your profit would be like if you collected all scrap and just scrap on the ship
             //      Take into account the company buying rate as another option
@@ -797,13 +804,31 @@ namespace ShipLootPlus.Utils
 
             Parallel.ForEach(ElementsToUpdate, (slpi) =>
             {
-                if (ConfigSettings.DebugMode.Value) Log.LogMessage($"[RefreshElementValues:{IsUpdating}] Updating element: {slpi.name}");
+                if (ConfigSettings.DebugMode.Value) Log.LogMessage($"[RefreshElementValues:{IsUpdating}] Updating value for element: {slpi.name}");
                 string textContent = ReplaceValues(slpi.format, DataPoints.Where(d => DataSubSet.Contains(d.Name)).ToList());
-                slpi.textMeshProUGui.text = textContent;
-                //slpi.textMeshProUGui.ForceMeshUpdate();
-                if (ConfigSettings.AllCaps.Value) { slpi.textMeshProUGui.text = slpi.textMeshProUGui.text.ToUpper(); }
-                IsUpdating = false;
+                if (ConfigSettings.AllCaps.Value) { textContent = textContent.ToUpper(); }
+                slpi.value = textContent;
             });
+
+            IsUpdating = false;
+            UpdateReady = true;
+        }
+
+        /// <summary>
+        /// Update GameObjects from main thread
+        /// </summary>
+        public static void UpdateUiObjects()
+        {
+            if (!UpdateReady && ContainerObject == null) return;
+            foreach (ShipLootPlusItem item in ElementsToUpdate.Where(g => g.gameOjbect != null))
+            {
+                if (item.textMeshProUGui.text != item.value)
+                {
+                    if (ConfigSettings.DebugMode.Value) Log.LogMessage($"[UpdateUiObjects] Updating text for element: {item.name}");
+                    item.textMeshProUGui.text = item.value;
+                }
+            }
+            UpdateReady = false;
         }
 
         #endregion
@@ -1014,13 +1039,22 @@ namespace ShipLootPlus.Utils
         /// Rate limit updating all data points
         /// </summary>
         /// <returns></returns>
-        public static IEnumerator UpdateDatapoints()
+        public static IEnumerator UpdateDatapoints(float delay = 0f, int loop = 1)
         {
             if (!IsRefreshing) { IsRefreshing = true; }
+            if (delay > 0f)
+            {
+                if (ConfigSettings.DebugMode.Value) Log.LogInfo($"[UpdateDatapoints] Delaying datapoint refresh for [ {delay} ] seconds");
+                yield return new WaitForSeconds(delay);
+            }
             timeLeftUpdate = 0.5f;
 
-            if (ConfigSettings.DebugMode.Value) Log.LogMessage($"[UpdateDatapoints:{IsRefreshing}] Callers: {GetStackTraceInfo("Patcher")} => timeLeftUpdate: {timeLeftUpdate}");
-            RefreshElementValues();
+            if (ConfigSettings.DebugMode.Value) Log.LogMessage($"[UpdateDatapoints:{IsRefreshing}] Callers: {GetStackTraceInfo("Patcher")} => timeLeftUpdate: {timeLeftUpdate} => Loop: {loop}");
+            for (int i = 0; i < loop; i++)
+            {
+                RefreshElementValues();
+                if (loop > 1) yield return new WaitForSeconds(0.5f);
+            }
 
             while (timeLeftUpdate > 0f)
             {
@@ -1077,39 +1111,49 @@ namespace ShipLootPlus.Utils
         public static LootItem CalculateLootValue(List<string> Ignored, string scope)
         {
             List<GrabbableObject> scrapList = null;
+            LootItem lootItem = new LootItem { Count = 0, Value = 0 };
+            GrabbableObject[] FoundObjects = Object.FindObjectsOfType<GrabbableObject>();
+            if (FoundObjects == null || FoundObjects.Length == 0)
+            {
+                if (ConfigSettings.DebugMode.Value) Log.LogWarning("[CalculateLootValue] GrabbableObject list was null => Returning zeros...");
+                return lootItem;
+            }
+            FoundObjects = FoundObjects.Where(s => s != null && s.itemProperties != null).ToArray();
+            FoundObjects = FoundObjects.Where(s => s.itemProperties.isScrap
+                                                && !IsIgnored(Ignored, s.name)).ToArray();
 
             switch (scope)
             {
+                case "All":
+                    scrapList = FoundObjects.ToList();
+                    break;
                 case "Ship":
-                    scrapList = Object.FindObjectsOfType<GrabbableObject>().Where(s => s.itemProperties.isScrap
-                                                                                    && s.isInShipRoom
-                                                                                    && s.isInElevator
-                                                                                    && !IsIgnored(Ignored, s.name)).ToList();
+                    scrapList = FoundObjects.Where(s => s.isInShipRoom
+                                                     && s.isInElevator).ToList();
                     break;
                 case "Moon":
-                    if (StartOfRound.Instance.inShipPhase) break;
-                    scrapList = Object.FindObjectsOfType<GrabbableObject>().Where(s => s.itemProperties.isScrap
-                                                                                    && !s.isInShipRoom
-                                                                                    && !s.isInElevator
-                                                                                    && !IsIgnored(Ignored, s.name)).ToList();
+                    scrapList = FoundObjects.Where(s => !s.isInShipRoom
+                                                     && !s.isInElevator).ToList();
                     break;
-                case "All":
-                    scrapList = Object.FindObjectsOfType<GrabbableObject>().Where(s => s.itemProperties.isScrap
-                                                                                    && !IsIgnored(Ignored, s.name)).ToList();
-                    break;
+                
                 case "Inv":
-                    scrapList = Object.FindObjectsOfType<GrabbableObject>().Where(s => s.itemProperties.isScrap
-                                                                                    && (s.isHeld || s.isPocketed)
-                                                                                    && s.playerHeldBy.IsLocalPlayer
-                                                                                    && !IsIgnored(Ignored, s.name)).ToList();
+                    scrapList = FoundObjects.Where(s => (s.isHeld || s.isPocketed)
+                                                     && s.playerHeldBy.IsLocalPlayer).ToList();
                     break;
             }
 
-            if (scrapList == null) return new LootItem { Value = 0, Count = 0 };
+            if (scrapList == null)
+            {
+                if (ConfigSettings.DebugMode.Value) Log.LogWarning($"[CalculateLootValue] {scope} GrabbableObject list was null => Returning zeros...");
+                return lootItem;
+            }
+
+            lootItem.Count = scrapList.Count;
+            lootItem.Value = scrapList.Sum(s => s.scrapValue);
 
             if (ConfigSettings.DebugMode.Value)
             {
-                Log.LogMessage($"[CalculateLootValue] Calculating total {scope} scrap value => Valid item count: {scrapList.Count}");
+                Log.LogMessage($"[CalculateLootValue] Calculating total {scope} scrap value => Valid item count: {lootItem.Count} => Value: ${lootItem.Value}");
                 scrapList.ForEach(s =>
                 {
                     if (s != null) Log.LogMessage($"[CalculateLootValue] {s.name} - ${s.scrapValue}");
@@ -1117,12 +1161,8 @@ namespace ShipLootPlus.Utils
                 });
                 Log.LogMessage("");
             }
-
-            return new LootItem
-            {
-                Value = scrapList.Sum(s => s.scrapValue),
-                Count = scrapList.Count
-            };
+            
+            return lootItem;
         }
 
         /// <summary>

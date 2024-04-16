@@ -17,6 +17,7 @@ namespace ShipLootPlus.Utils
         public TextMeshProUGUI textMeshProUGui;
         public bool enabled = false;
         public bool image = false;
+        public string value;
     }
 
     /// <summary>

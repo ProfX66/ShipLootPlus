@@ -50,12 +50,13 @@ namespace ShipLootPlus.Patches
         {
             if (GameNetworkManager.Instance != null && GameNetworkManager.Instance.localPlayerController != null)
             {
+                UiHelper.UpdateUiObjects();
                 UiHelper.TryToggleUi();
             }
         }
 
         /// <summary>
-        /// Refresh data values when new scrap is added to the ship
+        /// Refresh data values when new scrap is added to the ship 
         /// </summary>
         [HarmonyPatch(typeof(HUDManager), nameof(DisplayNewScrapFound))]
         [HarmonyPostfix]
@@ -64,7 +65,7 @@ namespace ShipLootPlus.Patches
             if (ConfigSettings.DebugMode.Value) ShipLootPlus.Log.LogMessage($"[DisplayNewScrapFound] New scrap delivered to ship");
             if (GameNetworkManager.Instance != null && !UiHelper.IsRefreshing)
             {
-                GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints());
+                GameNetworkManager.Instance.StartCoroutine(UiHelper.UpdateDatapoints(1f));
             }
         }
 
