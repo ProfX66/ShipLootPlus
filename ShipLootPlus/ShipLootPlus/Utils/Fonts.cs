@@ -76,6 +76,8 @@ namespace ShipLootPlus.Utils
                     Log.LogInfo($"[Fonts] Loaded font: {loadedFont.name}");
                     LcFontAssets.Add(new LcFont { Name = loadedFont.name, Asset = loadedFont });
                 }
+                Log.LogInfo($"[Fonts] Unloading asset bundle...");
+                FontBundle.Unload(false);
             }
             else
             {

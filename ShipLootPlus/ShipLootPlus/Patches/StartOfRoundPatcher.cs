@@ -144,6 +144,9 @@ namespace ShipLootPlus.Patches
             }
         }
 
+        /// <summary>
+        /// Update values when RPC is recieved
+        /// </summary>
         [HarmonyPatch(typeof(StartOfRound), nameof(AllPlayersHaveRevivedClientRpc))]
         [HarmonyPostfix]
         private static void AllPlayersHaveRevivedClientRpc()
