@@ -9,8 +9,6 @@ using System.Text.RegularExpressions;
 using System.Linq;
 using BepInEx.Bootstrap;
 using System.IO;
-using UnityEngine;
-using TMPro;
 
 namespace ShipLootPlus
 {
@@ -19,7 +17,7 @@ namespace ShipLootPlus
         public const string Author = "PXC";
         public const string Name = "ShipLootPlus";
         public const string Id = "PXC.ShipLootPlus";
-        public const string Version = "1.0.9";
+        public const string Version = "1.1.0";
         public string FullName => string.Format("{0} v{1}", Name, Version);
     }
 

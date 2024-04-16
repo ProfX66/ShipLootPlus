@@ -1,3 +1,12 @@
+# v1.1.0
+- Refactored the data refresh method to handle when the scrap list is null and/or a scrap item is missing required properties (should fix [Issue #9](https://github.com/ProfX66/ShipLootPlus/issues/9))
+- Moved all Unity GameObject manipulation (changing/updating) to the main thread during data refresh
+- Added a slight delay when new scrap is brought onto the ship to avoid a race condition where the moons scrap list became desynced
+- Now correctly unloads the font asset bundle after the assets have been loaded
+- Some minor code cleanup
+- Compiled with the latest version of LethalConfig and updated the dependency version in the mod manifest
+- Compiled with the latest version of Lethal Company (v50 public release)
+
 # v1.0.9
 - Cleaned up some of the code and fixed a couple misspellings
 - Added additional null checks in every patch method to ensure nothing is used when objects are unexpectedly null
